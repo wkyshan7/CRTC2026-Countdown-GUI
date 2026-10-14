@@ -7,6 +7,7 @@ from PySide6.QtWidgets import QWidget
 
 SCORE_RECTS = {'left_score': QRectF(810, 650, 120, 85),
                'right_score': QRectF(990, 650, 120, 85)}
+TICKER_RECT = QRectF(80, 980, 1760, 64)
 
 
 class Display(QWidget):
@@ -20,7 +21,7 @@ class Display(QWidget):
         self.setWindowTitle('CRTC 比赛大屏 · F11 全屏 · F2 操作面板')
         self.resize(1280, 720)
         for key, callback in [('F11', self.toggle_fullscreen), ('Escape', self.showNormal),
-                              ('F2', controller.show_panel), ('Space', controller.toggle_timer)]:
+                              ('F2', controller.show_panel)]:
             shortcut = QShortcut(QKeySequence(key), self)
             shortcut.activated.connect(callback)
 
@@ -29,7 +30,7 @@ class Display(QWidget):
 
     def reset_scroll(self):
         self.message_index = 0
-        self.message_offset = 1920.0
+        self.message_offset = TICKER_RECT.width()
         self.last_scroll_time = time.monotonic()
 
     def messages(self):
@@ -47,7 +48,7 @@ class Display(QWidget):
             width = QFontMetricsF(font).horizontalAdvance(messages[self.message_index % len(messages)])
             if self.message_offset < -width:
                 self.message_index = (self.message_index + 1) % len(messages)
-                self.message_offset = 1920.0
+                self.message_offset = TICKER_RECT.width()
             self.update()
 
     def mousePressEvent(self, event):
@@ -111,14 +112,17 @@ class Display(QWidget):
         status = '时间到' if seconds == 0 else ('进行中' if self.controller.timer.running else '等待开始')
         label(QRectF(610, 375, 700, 60), f'{self.controller.phase_name} · {status}', 26, QColor('#777777'))
         messages = self.messages()
-        p.fillRect(QRectF(0, 1024 if messages else 1052, 1920, 56 if messages else 28), yellow)
+        p.fillRect(TICKER_RECT, yellow)
         if messages:
             p.save()
-            p.setClipRect(QRectF(0, 1024, 1920, 56))
+            p.setClipRect(TICKER_RECT)
             font = QFont('Microsoft YaHei')
             font.setPixelSize(26)
             p.setFont(font)
             p.setPen(dark)
-            p.drawText(QPointF(self.message_offset, 1061), messages[self.message_index % len(messages)])
+            metrics = QFontMetricsF(font)
+            baseline = TICKER_RECT.center().y() + (metrics.ascent() - metrics.descent()) / 2
+            p.drawText(QPointF(TICKER_RECT.left() + self.message_offset, baseline),
+                       messages[self.message_index % len(messages)])
             p.restore()
         p.end()

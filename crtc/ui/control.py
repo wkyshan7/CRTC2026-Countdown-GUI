@@ -1,7 +1,8 @@
 """配置和比赛操作的协调：保存、计时、比分及屏幕选择。"""
 from pathlib import Path
 
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import QTimer, Qt
+from PySide6.QtGui import QShortcut, QKeySequence
 from PySide6.QtWidgets import (QApplication, QMainWindow, QLineEdit, QPushButton,
     QComboBox, QPlainTextEdit, QFileDialog, QMessageBox)
 
@@ -25,6 +26,10 @@ class Control(QMainWindow):
         self.resize(940, 640)
         build_control_layout(self)
         apply_control_theme(self)
+        self.start_shortcut = QShortcut(QKeySequence('Space'), self)
+        self.start_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut)
+        self.start_shortcut.setAutoRepeat(False)
+        self.start_shortcut.activated.connect(self.start_timer)
         self.ticker = QTimer(self)
         self.ticker.timeout.connect(self.tick)
         self.ticker.start(100)
@@ -114,6 +119,11 @@ class Control(QMainWindow):
 
     def toggle_timer(self):
         self.timer.pause() if self.timer.running else self.timer.start()
+        self.tick()
+
+    def start_timer(self):
+        """空格开始或继续当前阶段；重复按下不会暂停正在运行的计时。"""
+        self.timer.start()
         self.tick()
 
     def tick(self):

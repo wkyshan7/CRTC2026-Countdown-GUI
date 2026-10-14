@@ -94,6 +94,21 @@ class ControlTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             parse_teams(('队' * 81).encode())
 
+    def test_space_binding_starts_and_resumes_without_toggling_pause(self):
+        c = self.control
+        self.assertEqual(c.start_shortcut.context(), Qt.ShortcutContext.ApplicationShortcut)
+        self.assertFalse(c.start_shortcut.autoRepeat())
+        c.set_phase('competition')
+        c.start_shortcut.activated.emit()
+        self.assertTrue(c.timer.running)
+        deadline = c.timer.deadline
+        c.start_shortcut.activated.emit()
+        self.assertEqual(c.timer.deadline, deadline)
+        c.toggle_timer()
+        self.assertFalse(c.timer.running)
+        c.start_shortcut.activated.emit()
+        self.assertTrue(c.timer.running)
+
     def test_dark_palette_readability_and_existing_timer_controls(self):
         dark = QPalette()
         dark.setColor(QPalette.ColorRole.WindowText, QColor('white'))

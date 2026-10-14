@@ -94,7 +94,7 @@ def build_control_layout(window):
     window.screens.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
     screen_layout.addWidget(window.screens)
     window.button(screen_layout, '在所选屏幕全屏展示', window.show_on_screen)
-    shortcuts = QLabel('大屏快捷键：F11 全屏 / Esc 退出全屏\nF2 打开操作面板 / 空格 开始或暂停')
+    shortcuts = QLabel('大屏快捷键：F11 全屏 / Esc 退出全屏\nF2 打开操作面板 / 空格 开始或继续')
     shortcuts.setWordWrap(True)
     screen_layout.addWidget(shortcuts)
     operations.addWidget(screen_group)
