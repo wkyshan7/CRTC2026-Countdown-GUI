@@ -21,6 +21,9 @@ class Display(QWidget):
         self.logo = QPixmap(str(PROJECT_ROOT / 'assets' / 'images' / 'CRTCLogo.png'))
         if self.logo.isNull():
             raise RuntimeError('无法加载 assets/images/CRTCLogo.png')
+        self.header_decoration = QPixmap(str(PROJECT_ROOT / 'assets' / 'images' / 'header-emblem-yellow.png'))
+        if self.header_decoration.isNull():
+            raise RuntimeError('无法加载 assets/images/header-emblem-yellow.png')
         self.reset_scroll()
         self.scroll_timer = QTimer(self)
         self.scroll_timer.timeout.connect(self.advance_scroll)
@@ -135,8 +138,8 @@ class Display(QWidget):
             p.drawText(rect, align, text)
 
         d = self.controller.data
-        draw_match_header(p, d)
-        logo_area = QRectF(1495, 48, 380, 120)
+        draw_match_header(p, d, self.header_decoration)
+        logo_area = QRectF(1590, 48, 285, 90)
         ratio = min(logo_area.width() / self.logo.width(), logo_area.height() / self.logo.height())
         logo_rect = QRectF(0, 0, self.logo.width() * ratio, self.logo.height() * ratio)
         logo_rect.moveCenter(logo_area.center())

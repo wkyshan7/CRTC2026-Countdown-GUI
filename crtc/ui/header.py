@@ -1,6 +1,6 @@
 """参考赛事视觉的左上角标题区，按文字宽度动态布局。"""
-from PySide6.QtCore import Qt, QRectF, QPointF
-from PySide6.QtGui import QColor, QFont, QFontMetricsF, QPolygonF
+from PySide6.QtCore import Qt, QRectF
+from PySide6.QtGui import QColor, QFont, QFontMetricsF
 
 from .fonts import text_font
 
@@ -19,27 +19,16 @@ def fit_font(text, size, max_width, bold=False, emphasis=False, max_height=None)
     return font
 
 
-def draw_match_header(painter, data):
+def draw_match_header(painter, data, decoration):
     painter.save()
     yellow = QColor('#ffd400')
     dark = QColor('#292929')
-    painter.setPen(Qt.PenStyle.NoPen)
-    painter.setBrush(yellow)
-    # 装饰箭头与放射状色块位于文字背后，用矢量绘制保持缩放清晰。
-    for x, y, angle in [(69, 99, 25), (135, 62, -65)]:
-        painter.save()
-        painter.translate(x, y)
-        painter.rotate(angle)
-        painter.drawPolygon(QPolygonF([QPointF(-36, -10), QPointF(5, -10),
-            QPointF(5, -20), QPointF(32, 0), QPointF(5, 20),
-            QPointF(5, 10), QPointF(-36, 10)]))
-        painter.restore()
-    for x, y, angle in [(91, 157, 25), (145, 131, -25), (118, 167, -20)]:
-        painter.save()
-        painter.translate(x, y)
-        painter.rotate(angle)
-        painter.drawRect(QRectF(-10, -27, 20, 54))
-        painter.restore()
+    # 透明黄色环形图案置于文字背后，中心和图块间隙保持透明。
+    area = QRectF(42, 48, 160, 160)
+    ratio = min(area.width() / decoration.width(), area.height() / decoration.height())
+    target = QRectF(0, 0, decoration.width() * ratio, decoration.height() * ratio)
+    target.moveCenter(area.center())
+    painter.drawPixmap(target, decoration, QRectF(decoration.rect()))
 
     title_font = fit_font(data['title'], 30, 1100)
     painter.setFont(title_font)

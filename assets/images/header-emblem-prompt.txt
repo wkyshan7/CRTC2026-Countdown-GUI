@@ -1,0 +1,4 @@
+Tool: built-in image_gen (transparent_background=true)
+Source: codex-clipboard-f9bc84e8-f8b6-479c-993c-fc2156c2a904.png
+Final prompt:
+Precise logo extraction from the provided edit target. Make a CLEAN FLAT SOLID COLOR desktop UI icon. Keep exactly the eight charcoal rectangles, their rotations and ring positions from the input. Recolor the eight rectangles to perfectly uniform solid #FFD400 yellow. Completely erase the original yellow background to alpha transparency, including all gaps and the central hole. The final asset must contain ONLY EIGHT clean sharp edged flat yellow rectangles on a fully transparent canvas. Absolutely no texture, speckles, stray pixels, outlines, dark edges, grain, gradients, shadows, highlights or extra polygons. Preserve the reference block dimensions and negative spaces. Minimal transparent padding, crisp digital icon, no text. Do not invent additional design elements.
