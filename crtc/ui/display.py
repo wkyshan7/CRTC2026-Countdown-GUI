@@ -7,7 +7,7 @@ from PySide6.QtWidgets import QWidget
 
 SCORE_RECTS = {'left_score': QRectF(810, 650, 120, 85),
                'right_score': QRectF(990, 650, 120, 85)}
-TICKER_RECT = QRectF(80, 980, 1760, 64)
+TICKER_HEIGHT = 64
 
 
 class Display(QWidget):
@@ -30,8 +30,20 @@ class Display(QWidget):
 
     def reset_scroll(self):
         self.message_index = 0
-        self.message_offset = TICKER_RECT.width()
+        self.message_offset = self.ticker_rect().width()
         self.last_scroll_time = time.monotonic()
+
+    def ticker_rect(self):
+        """在设计坐标中定位消息条，使其始终贴合实际窗口底边和左右边。"""
+        scale = min(self.width() / 1920, self.height() / 1080)
+        offset_x = (self.width() - 1920 * scale) / 2
+        offset_y = (self.height() - 1080 * scale) / 2
+        return QRectF(-offset_x / scale, (self.height() - offset_y) / scale - TICKER_HEIGHT,
+                      self.width() / scale, TICKER_HEIGHT)
+
+    def resizeEvent(self, event):
+        self.reset_scroll()
+        super().resizeEvent(event)
 
     def messages(self):
         return [line.strip() for line in self.controller.data['messages'].splitlines() if line.strip()]
@@ -48,7 +60,7 @@ class Display(QWidget):
             width = QFontMetricsF(font).horizontalAdvance(messages[self.message_index % len(messages)])
             if self.message_offset < -width:
                 self.message_index = (self.message_index + 1) % len(messages)
-                self.message_offset = TICKER_RECT.width()
+                self.message_offset = self.ticker_rect().width()
             self.update()
 
     def mousePressEvent(self, event):
@@ -112,17 +124,18 @@ class Display(QWidget):
         status = '时间到' if seconds == 0 else ('进行中' if self.controller.timer.running else '等待开始')
         label(QRectF(610, 375, 700, 60), f'{self.controller.phase_name} · {status}', 26, QColor('#777777'))
         messages = self.messages()
-        p.fillRect(TICKER_RECT, yellow)
+        ticker = self.ticker_rect()
+        p.fillRect(ticker, yellow)
         if messages:
             p.save()
-            p.setClipRect(TICKER_RECT)
+            p.setClipRect(ticker)
             font = QFont('Microsoft YaHei')
             font.setPixelSize(26)
             p.setFont(font)
             p.setPen(dark)
             metrics = QFontMetricsF(font)
-            baseline = TICKER_RECT.center().y() + (metrics.ascent() - metrics.descent()) / 2
-            p.drawText(QPointF(TICKER_RECT.left() + self.message_offset, baseline),
+            baseline = ticker.center().y() + (metrics.ascent() - metrics.descent()) / 2
+            p.drawText(QPointF(ticker.left() + self.message_offset, baseline),
                        messages[self.message_index % len(messages)])
             p.restore()
         p.end()
