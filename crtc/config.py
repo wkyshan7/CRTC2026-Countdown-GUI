@@ -1,5 +1,8 @@
 """默认值、配置兼容校验与 JSON 存储，不依赖图形界面。"""
 import json
+import os
+import tempfile
+import time
 from copy import deepcopy
 from pathlib import Path
 
@@ -42,7 +45,7 @@ def load_config(path=CONFIG_PATH):
 
 
 class ConfigStore:
-    """负责配置读取和原子写入；由调用方处理保存失败的提示。"""
+    """优先原子替换；Windows 禁止替换时，备份后写入现有文件。"""
 
     def __init__(self, path=CONFIG_PATH):
         self.path = Path(path)
@@ -51,6 +54,53 @@ class ConfigStore:
         return load_config(self.path)
 
     def save(self, data):
-        temporary = self.path.with_suffix('.json.tmp')
-        temporary.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
-        temporary.replace(self.path)
+        content = json.dumps(data, ensure_ascii=False, indent=2).encode('utf-8')
+        temporary = None
+        try:
+            # 每次使用独立临时文件，避免多个程序实例共享同一个 .tmp。
+            with tempfile.NamedTemporaryFile(dir=self.path.parent, prefix=self.path.name + '.',
+                                             suffix='.tmp', delete=False) as stream:
+                temporary = Path(stream.name)
+                stream.write(content)
+                stream.flush()
+                os.fsync(stream.fileno())
+            for attempt in range(3):
+                try:
+                    os.replace(temporary, self.path)
+                    return
+                except PermissionError:
+                    if attempt < 2:
+                        time.sleep(0.05 * (attempt + 1))
+                    elif self.path.is_file():
+                        self._overwrite_existing(content)
+                    else:
+                        raise
+        finally:
+            if temporary is not None:
+                try:
+                    temporary.unlink(missing_ok=True)
+                except OSError:
+                    pass
+
+    def _overwrite_existing(self, content):
+        """有写权限但没有替换权限时保留文件本身；旧内容备份便于恢复。"""
+        original = self.path.read_bytes()
+        backup = self.path.with_suffix(self.path.suffix + '.bak')
+        backup.write_bytes(original)
+        # r+b 不会在打开时截断，权限不足时原配置保持完整。
+        with self.path.open('r+b') as stream:
+            try:
+                stream.write(content)
+                stream.truncate()
+                stream.flush()
+                os.fsync(stream.fileno())
+            except OSError:
+                try:
+                    stream.seek(0)
+                    stream.write(original)
+                    stream.truncate()
+                    stream.flush()
+                    os.fsync(stream.fileno())
+                except OSError:
+                    pass  # 旧内容仍保存在 .bak 文件中。
+                raise
