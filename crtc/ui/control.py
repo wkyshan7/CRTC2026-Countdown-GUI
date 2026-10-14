@@ -117,6 +117,7 @@ class Control(QMainWindow):
             return
         self.phase_name = '技术暂停'
         self.timer.reset(self.data['technical'])
+        self.timer.start()
         self.tick()
 
     def toggle_timer(self):

@@ -81,7 +81,7 @@ def build_control_layout(window):
     window.start_button = window.button(row, '开始', window.toggle_timer)
     window.tech_button = window.button(row, '技术暂停（覆盖计时）', window.technical_pause)
     timer_layout.addLayout(row)
-    pause_tip = QLabel('技术暂停仅适用于准备阶段，覆盖后等待手动开始。')
+    pause_tip = QLabel('技术暂停仅适用于准备阶段，覆盖倒计时后立即开始。')
     pause_tip.setWordWrap(True)
     timer_layout.addWidget(pause_tip)
     operations.addWidget(timer_group)
