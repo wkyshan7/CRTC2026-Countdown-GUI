@@ -60,10 +60,17 @@ class Control(QMainWindow):
         if any(not data[key] for key in ('title', 'match', 'left_team', 'right_team')):
             QMessageBox.warning(self, '配置未保存', '赛事名称、轮次和双方队伍不能为空。')
             return
+        for key in ('left_score', 'right_score'):
+            data[key] = bounded_score(data[key], data['score_limit'])
         if not self.save_data(data):
             return
         reset_scroll = data['messages'] != self.data['messages']
         self.data = data
+        for key, field in self.score_fields.items():
+            field.blockSignals(True)
+            field.setRange(0, self.data['score_limit'])
+            field.setValue(self.data[key])
+            field.blockSignals(False)
         if reset_scroll:
             self.display.reset_scroll()
         self.tick()
@@ -77,7 +84,7 @@ class Control(QMainWindow):
         return True
 
     def set_score(self, key, value):
-        self.data[key] = bounded_score(value)
+        self.data[key] = bounded_score(value, self.data['score_limit'])
         field = self.score_fields[key]
         field.blockSignals(True)
         field.setValue(self.data[key])
@@ -143,6 +150,7 @@ class Control(QMainWindow):
         if self.timer.finish_if_due():
             QApplication.beep()
         seconds = self.timer.seconds()
+        self.score_tip.setText(f"大屏比分：左键 +1，右键 -1；超出 0～{self.data['score_limit']} 归零。")
         self.music.sync(self.music_phase, self.timer.running, seconds)
         self.status.setText(f'{self.phase_name}  {seconds // 60:02d}:{seconds % 60:02d}')
         self.start_button.setText('暂停' if self.timer.running else '开始 / 继续')

@@ -94,6 +94,26 @@ class ControlTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             parse_teams(('队' * 81).encode())
 
+    def test_configurable_score_limit_updates_inputs_clicks_and_saved_scores(self):
+        c = self.control
+        c.fields['score_limit'].setValue(5)
+        c.apply_config()
+        self.assertEqual(c.score_fields['left_score'].maximum(), 5)
+        c.score_fields['left_score'].setValue(4)
+        self.assertEqual(c.config_store.load()['left_score'], 4)
+        c.display.show()
+        self.app.processEvents()
+        self.click_score('left_score', Qt.MouseButton.LeftButton)
+        self.assertEqual(c.data['left_score'], 5)
+        self.click_score('left_score', Qt.MouseButton.LeftButton)
+        self.assertEqual(c.data['left_score'], 0)
+        c.score_fields['right_score'].setValue(5)
+        c.fields['score_limit'].setValue(2)
+        c.apply_config()
+        self.assertEqual(c.data['right_score'], 0)
+        self.assertEqual(c.score_fields['right_score'].maximum(), 2)
+        self.assertEqual(c.config_store.load()['score_limit'], 2)
+
     def test_control_forwards_phase_and_timer_events_to_music(self):
         c = self.control
         backend = Mock()

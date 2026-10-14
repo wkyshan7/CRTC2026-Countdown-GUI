@@ -12,10 +12,10 @@ DEFAULTS = dict(title='重庆大学机器人训练大赛', match='决赛',
                 left_team='你说得队', right_team='你说得队', left_score=0,
                 right_score=0, preparation=120, technical=120, competition=240,
                 english='FINAL\nMATCH', team_font_size=44, messages='', teams=[],
-                technical_auto_start=True)
+                technical_auto_start=True, score_limit=3)
 
-def bounded_score(value):
-    return value if 0 <= value <= 3 else 0
+def bounded_score(value, limit=3):
+    return value if 0 <= value <= limit else 0
 
 
 def load_config(path=CONFIG_PATH):
@@ -33,13 +33,17 @@ def load_config(path=CONFIG_PATH):
                 data[key] = list(dict.fromkeys(v.strip()[:80] for v in value if isinstance(v, str) and v.strip()))
             elif type(value) is int:
                 if key.endswith('_score'):
-                    data[key] = bounded_score(value)
+                    data[key] = value
+                elif key == 'score_limit':
+                    data[key] = max(1, min(value, 99))
                 elif key == 'team_font_size':
                     data[key] = max(18, min(value, 90))
                 else:
                     data[key] = max(1, min(value, 5999))
     except (OSError, ValueError, AttributeError):
         pass
+    for key in ('left_score', 'right_score'):
+        data[key] = bounded_score(data[key], data['score_limit'])
     return data
 
 

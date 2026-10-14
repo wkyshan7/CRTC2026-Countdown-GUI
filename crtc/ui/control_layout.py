@@ -24,12 +24,12 @@ def build_control_layout(window):
     window.score_fields = {}
     for key, title in [('left_score', '红方大比分'), ('right_score', '蓝方大比分')]:
         field = QSpinBox()
-        field.setRange(0, 3)
+        field.setRange(0, window.data['score_limit'])
         field.setValue(window.data[key])
         field.valueChanged.connect(lambda value, score_key=key: window.set_score(score_key, value))
         window.score_fields[key] = field
         score_form.addRow(title, field)
-    score_tip = QLabel('大屏比分：左键 +1，右键 -1；超出 0～3 归零。')
+    window.score_tip = score_tip = QLabel()
     score_tip.setWordWrap(True)
     score_form.addRow(score_tip)
     operations.addWidget(score_group)
@@ -40,7 +40,8 @@ def build_control_layout(window):
     labels = dict(title='赛事名称', match='赛事轮次', left_team='红方队伍', right_team='蓝方队伍',
                   left_score='红方大比分', right_score='蓝方大比分', preparation='准备时长（秒）',
                   technical='技术暂停时长（秒）', competition='比赛时长（秒）',
-                  english='左上角英文（可换行）', team_font_size='队名字号（像素）', messages='滚动信息（每行一条）')
+                  english='左上角英文（可换行）', team_font_size='队名字号（像素）', messages='滚动信息（每行一条）',
+                  score_limit='比分上限')
     for key, value in window.data.items():
         if key in ('left_score', 'right_score', 'teams', 'technical_auto_start'):
             continue
@@ -60,7 +61,7 @@ def build_control_layout(window):
         else:
             field = QSpinBox()
             field.setRange(18 if key == 'team_font_size' else 1,
-                           90 if key == 'team_font_size' else 5999)
+                           90 if key == 'team_font_size' else (99 if key == 'score_limit' else 5999))
             field.setValue(value)
         window.fields[key] = field
         form.addRow(labels[key], field)
