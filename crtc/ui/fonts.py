@@ -1,7 +1,6 @@
 """随应用加载字体，统一处理中英文字体及强调样式。"""
 from functools import lru_cache
 
-from PySide6.QtCore import QChar
 from PySide6.QtGui import QFont, QFontDatabase
 from PySide6.QtWidgets import QApplication
 
@@ -22,7 +21,6 @@ def load_fonts():
             if font_id < 0:
                 raise RuntimeError(f'无法加载字体：{path.name}')
             registered[path.name] = QFontDatabase.applicationFontFamilies(font_id)
-    QFontDatabase.setApplicationFallbackFontFamilies(QChar.Script.Script_Han, ['OPPOSans'])
     return registered
 
 
