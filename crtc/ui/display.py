@@ -6,6 +6,7 @@ from PySide6.QtGui import QColor, QPainter, QPixmap, QShortcut, QKeySequence, QF
 from PySide6.QtWidgets import QWidget
 
 from .fonts import text_font
+from .header import draw_match_header
 from crtc.runtime import PROJECT_ROOT
 
 SCORE_RECTS = {'left_score': QRectF(810, 650, 120, 85),
@@ -134,12 +135,7 @@ class Display(QWidget):
             p.drawText(rect, align, text)
 
         d = self.controller.data
-        label(QRectF(80, 55, 900, 45), d['title'], 30, align=Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        p.fillRect(QRectF(80, 112, 290, 57), yellow)
-        label(QRectF(84, 105, 150, 65), d['match'], 52, bold=True)
-        english_letters = [char for char in d['english'] if char.isascii() and char.isalpha()]
-        uppercase = bool(english_letters) and all(char.isupper() for char in english_letters)
-        label(QRectF(240, 114, 120, 51), d['english'], 21, bold=True, emphasis=uppercase)
+        draw_match_header(p, d)
         logo_area = QRectF(1495, 48, 380, 120)
         ratio = min(logo_area.width() / self.logo.width(), logo_area.height() / self.logo.height())
         logo_rect = QRectF(0, 0, self.logo.width() * ratio, self.logo.height() * ratio)
