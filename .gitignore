@@ -1,0 +1,7 @@
+.deps/
+.venv/
+__pycache__/
+config.json
+config.json.tmp
+preview.png
+control-preview.png
