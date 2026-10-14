@@ -30,7 +30,7 @@ python main.py
 - 大屏快捷键：F11 切换全屏，Esc 退出全屏，F2 显示控制面板。空格在大屏和控制窗口均可开始 / 继续当前阶段计时，重复按下不会暂停；暂停请使用控制面板按钮。编辑文字时空格保留为文字输入。
 - 关闭任一主窗口退出程序。运行中的倒计时不会在退出后恢复。
 
-参考图中的 CRTC 标记由文字和几何图形绘制，无需外部图片文件。
+右上角 CRTC 标记使用 `assets/images/CRTCLogo.png`，保持原始比例缩放并保留透明背景。
 
 ## 验证
 
@@ -48,6 +48,7 @@ CRTCCompetition/
 ├── start.bat               # Windows 启动脚本
 ├── requirements.txt        # Python 依赖
 ├── assets/font/            # Geometos、Outfit、OPPOSans 字体资源
+├── assets/images/          # CRTC Logo 图片资源
 ├── config.json             # 用户配置（运行时保存，不纳入版本控制）
 ├── crtc/
 │   ├── app.py              # 创建应用和主窗口

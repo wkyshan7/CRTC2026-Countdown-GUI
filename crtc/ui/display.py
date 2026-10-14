@@ -2,10 +2,11 @@
 import time
 
 from PySide6.QtCore import Qt, QRectF, QTimer, QPointF
-from PySide6.QtGui import QColor, QPainter, QShortcut, QKeySequence, QFontMetricsF
+from PySide6.QtGui import QColor, QPainter, QPixmap, QShortcut, QKeySequence, QFontMetricsF
 from PySide6.QtWidgets import QWidget
 
 from .fonts import text_font
+from crtc.runtime import PROJECT_ROOT
 
 SCORE_RECTS = {'left_score': QRectF(810, 650, 120, 85),
                'right_score': QRectF(990, 650, 120, 85)}
@@ -16,6 +17,9 @@ class Display(QWidget):
     def __init__(self, controller):
         super().__init__()
         self.controller = controller
+        self.logo = QPixmap(str(PROJECT_ROOT / 'assets' / 'images' / 'CRTCLogo.png'))
+        if self.logo.isNull():
+            raise RuntimeError('无法加载 assets/images/CRTCLogo.png')
         self.reset_scroll()
         self.scroll_timer = QTimer(self)
         self.scroll_timer.timeout.connect(self.advance_scroll)
@@ -83,6 +87,7 @@ class Display(QWidget):
     def paintEvent(self, event):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         p.fillRect(self.rect(), QColor('white'))
         scale = min(self.width() / 1920, self.height() / 1080)
         p.translate((self.width() - 1920 * scale) / 2, (self.height() - 1080 * scale) / 2)
@@ -109,12 +114,11 @@ class Display(QWidget):
         english_letters = [char for char in d['english'] if char.isascii() and char.isalpha()]
         uppercase = bool(english_letters) and all(char.isupper() for char in english_letters)
         label(QRectF(240, 114, 120, 51), d['english'], 21, bold=True, emphasis=uppercase)
-        p.fillRect(QRectF(1500, 48, 56, 56), yellow)
-        p.fillRect(QRectF(1556, 104, 56, 56), yellow)
-        p.setPen(Qt.PenStyle.NoPen)
-        p.setBrush(yellow)
-        p.drawEllipse(QRectF(1532, 80, 48, 48))
-        label(QRectF(1620, 55, 255, 100), 'CRTC', 86, emphasis=True)
+        logo_area = QRectF(1495, 48, 380, 120)
+        ratio = min(logo_area.width() / self.logo.width(), logo_area.height() / self.logo.height())
+        logo_rect = QRectF(0, 0, self.logo.width() * ratio, self.logo.height() * ratio)
+        logo_rect.moveCenter(logo_area.center())
+        p.drawPixmap(logo_rect, self.logo, QRectF(self.logo.rect()))
         for x, key in [(310, 'left_team'), (1270, 'right_team')]:
             label(QRectF(x, 465, 340, 115), d[key], d['team_font_size'], bold=True)
         seconds = self.controller.timer.seconds()
