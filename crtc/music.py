@@ -1,0 +1,64 @@
+"""阶段背景音乐扩展接口；默认静音，不依赖具体播放器或音频文件。"""
+from typing import Literal, Protocol
+
+MusicPhase = Literal['preparation', 'technical', 'competition']
+
+
+class MusicBackend(Protocol):
+    """后续播放器实现此接口；set_phase 负责选曲，play 负责播放或继续。"""
+
+    def set_phase(self, phase: MusicPhase) -> None: ...
+    def play(self) -> None: ...
+    def pause(self) -> None: ...
+    def stop(self) -> None: ...
+
+
+class SilentMusicBackend:
+    """未接入背景音乐时的默认实现。"""
+
+    def set_phase(self, phase: MusicPhase) -> None:
+        pass
+
+    def play(self) -> None:
+        pass
+
+    def pause(self) -> None:
+        pass
+
+    def stop(self) -> None:
+        pass
+
+
+class PhaseMusic:
+    """将计时状态转换为播放器事件，避免每次界面刷新重复播放。"""
+
+    def __init__(self, backend: MusicBackend | None = None):
+        self.backend = backend if backend is not None else SilentMusicBackend()
+        self.phase = None
+        self.state = 'stopped'
+
+    def reset(self):
+        """重置或覆盖计时时，让下一次同步重新选曲并从头播放。"""
+        self.stop()
+        self.phase = None
+
+    def sync(self, phase: MusicPhase, running: bool, remaining: int):
+        if phase != self.phase:
+            if self.phase is not None:
+                self.stop()
+            self.backend.set_phase(phase)
+            self.phase = phase
+        target = 'playing' if running else ('stopped' if remaining == 0 else 'paused')
+        if target == self.state:
+            return
+        if target == 'playing':
+            self.backend.play()
+        elif target == 'paused' and self.state == 'playing':
+            self.backend.pause()
+        elif target == 'stopped':
+            self.backend.stop()
+        self.state = target
+
+    def stop(self):
+        self.backend.stop()
+        self.state = 'stopped'

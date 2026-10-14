@@ -1,7 +1,7 @@
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from crtc.ui.control import Control
 from crtc.ui.display import SCORE_RECTS
@@ -93,6 +93,26 @@ class ControlTests(unittest.TestCase):
             parse_teams(b'\n  \r\n')
         with self.assertRaises(ValueError):
             parse_teams(('队' * 81).encode())
+
+    def test_control_forwards_phase_and_timer_events_to_music(self):
+        c = self.control
+        backend = Mock()
+        c.music.backend = backend
+        c.start_timer()
+        backend.play.assert_called_once()
+        c.technical_pause()
+        backend.set_phase.assert_called_with('technical')
+        self.assertEqual(backend.play.call_count, 2)
+        c.toggle_timer()
+        backend.pause.assert_called_once()
+        c.set_phase('competition')
+        backend.set_phase.assert_called_with('competition')
+        c.start_timer()
+        self.assertEqual(backend.play.call_count, 3)
+        backend.stop.reset_mock()
+        c.timer.clock = lambda: c.timer.deadline + 1
+        c.tick()
+        backend.stop.assert_called_once()
 
     def test_technical_auto_start_option_is_saved_and_respected(self):
         c = self.control

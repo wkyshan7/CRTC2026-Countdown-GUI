@@ -12,6 +12,12 @@ from crtc.runtime import PROJECT_ROOT
 SCORE_RECTS = {'left_score': QRectF(810, 650, 120, 85),
                'right_score': QRectF(990, 650, 120, 85)}
 TICKER_HEIGHT = 64
+TICKER_FONT_SIZE = 36
+
+
+def ticker_font():
+    """绘制和宽度测量使用相同的加粗字幕字体。"""
+    return text_font(TICKER_FONT_SIZE, bold=True)
 
 
 class Display(QWidget):
@@ -91,7 +97,7 @@ class Display(QWidget):
         messages = self.messages()
         if messages:
             self.message_offset -= elapsed * 140
-            font = text_font(26)
+            font = ticker_font()
             width = QFontMetricsF(font).horizontalAdvance(messages[self.message_index % len(messages)])
             if self.message_offset < -width:
                 self.message_index = (self.message_index + 1) % len(messages)
@@ -160,7 +166,7 @@ class Display(QWidget):
         if messages:
             p.save()
             p.setClipRect(ticker)
-            font = text_font(26)
+            font = ticker_font()
             p.setFont(font)
             p.setPen(dark)
             metrics = QFontMetricsF(font)

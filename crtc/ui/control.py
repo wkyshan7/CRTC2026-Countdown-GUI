@@ -9,18 +9,21 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QLineEdit, QPushButton
 from crtc.config import ConfigStore, bounded_score
 from crtc.countdown import Countdown
 from crtc.teams import parse_teams
+from crtc.music import PhaseMusic
 from .display import Display
 from .control_layout import build_control_layout
 from .theme import apply_control_theme
 from .fonts import apply_application_fonts
 
 class Control(QMainWindow):
-    def __init__(self, config_path=None):
+    def __init__(self, config_path=None, music_backend=None):
         super().__init__()
         apply_application_fonts()
         self.config_store = ConfigStore() if config_path is None else ConfigStore(config_path)
         self.data = self.config_store.load()
         self.phase = 'preparation'
+        self.music_phase = 'preparation'
+        self.music = PhaseMusic(music_backend)
         self.phase_name = '准备阶段'
         self.timer = Countdown(self.data[self.phase])
         self.display = Display(self)
@@ -110,6 +113,8 @@ class Control(QMainWindow):
             if answer != QMessageBox.StandardButton.Yes:
                 return
         self.phase = phase
+        self.music_phase = phase
+        self.music.reset()
         self.phase_name = '准备阶段' if phase == 'preparation' else '正式比赛'
         self.timer.reset(self.data[phase])
         self.tick()
@@ -118,6 +123,8 @@ class Control(QMainWindow):
         if self.phase != 'preparation':
             return
         self.phase_name = '技术暂停'
+        self.music_phase = 'technical'
+        self.music.reset()
         self.timer.reset(self.data['technical'])
         if self.data['technical_auto_start']:
             self.timer.start()
@@ -136,6 +143,7 @@ class Control(QMainWindow):
         if self.timer.finish_if_due():
             QApplication.beep()
         seconds = self.timer.seconds()
+        self.music.sync(self.music_phase, self.timer.running, seconds)
         self.status.setText(f'{self.phase_name}  {seconds // 60:02d}:{seconds % 60:02d}')
         self.start_button.setText('暂停' if self.timer.running else '开始 / 继续')
         self.tech_button.setEnabled(self.phase == 'preparation')
@@ -151,5 +159,6 @@ class Control(QMainWindow):
         self.display.enter_fullscreen(screen)
 
     def closeEvent(self, event):
+        self.music.stop()
         QApplication.instance().quit()
         event.accept()
