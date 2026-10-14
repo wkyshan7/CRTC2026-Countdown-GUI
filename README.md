@@ -40,11 +40,14 @@ python -m unittest discover -s tests
 
 ## 项目结构与维护
 
+项目字体位于 `assets/font/`，程序启动时自动注册，不需要在系统中安装。中文使用 OPPOSans，英文大写强调部分（CRTC 标识及全大写轮次英文）使用 Geometos，其余英文和数字使用 Outfit。中英混排通过字体回退保留中文的 OPPOSans 字形。左上角英文包含小写字母时使用 Outfit。
+
 ```text
 CRTCCompetition/
 ├── main.py                 # 程序入口
 ├── start.bat               # Windows 启动脚本
 ├── requirements.txt        # Python 依赖
+├── assets/font/            # Geometos、Outfit、OPPOSans 字体资源
 ├── config.json             # 用户配置（运行时保存，不纳入版本控制）
 ├── crtc/
 │   ├── app.py              # 创建应用和主窗口
@@ -56,7 +59,8 @@ CRTCCompetition/
 │       ├── control.py      # 比分、阶段、配置和屏幕操作协调
 │       ├── control_layout.py # 双栏控件布局与回调绑定
 │       ├── display.py      # 大屏绘制、点击、快捷键和滚动消息
-│       └── theme.py        # 控制面板配色与样式
+│       ├── theme.py        # 控制面板配色与样式
+│       └── fonts.py        # 字体注册、中英混排与强调样式
 ├── tests/
 │   ├── test_config.py     # 配置兼容、容错和存储测试
 │   ├── test_timer.py      # 计时逻辑测试
@@ -65,6 +69,8 @@ CRTCCompetition/
 ```
 
 修改设置窗口排版时编辑 `crtc/ui/control_layout.py`；修改颜色编辑 `crtc/ui/theme.py`；修改大屏外观编辑 `crtc/ui/display.py`。比赛操作回调集中在 `crtc/ui/control.py`，配置文件读取和写入集中在 `crtc/config.py`。
+
+字体加载与选择集中在 `crtc/ui/fonts.py`；字体文件使用随项目提供的资源，字体回归检查位于 `tests/test_fonts.py`。
 
 配置、计时与名单解析模块不依赖 Qt。界面层调用这些模块，程序入口只负责启动。`Control(config_path=...)` 支持指定配置路径，测试使用隔离的临时配置，不修改真实比赛信息。根目录 `config.json` 的位置和旧格式保持兼容，新增字段在读取时补充默认值。
 

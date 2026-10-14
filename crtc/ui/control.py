@@ -12,10 +12,12 @@ from crtc.teams import parse_teams
 from .display import Display
 from .control_layout import build_control_layout
 from .theme import apply_control_theme
+from .fonts import apply_application_fonts
 
 class Control(QMainWindow):
     def __init__(self, config_path=None):
         super().__init__()
+        apply_application_fonts()
         self.config_store = ConfigStore() if config_path is None else ConfigStore(config_path)
         self.data = self.config_store.load()
         self.phase = 'preparation'

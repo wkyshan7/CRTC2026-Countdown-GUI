@@ -2,8 +2,10 @@
 import time
 
 from PySide6.QtCore import Qt, QRectF, QTimer, QPointF
-from PySide6.QtGui import QColor, QFont, QPainter, QShortcut, QKeySequence, QFontMetricsF
+from PySide6.QtGui import QColor, QPainter, QShortcut, QKeySequence, QFontMetricsF
 from PySide6.QtWidgets import QWidget
+
+from .fonts import text_font
 
 SCORE_RECTS = {'left_score': QRectF(810, 650, 120, 85),
                'right_score': QRectF(990, 650, 120, 85)}
@@ -55,8 +57,7 @@ class Display(QWidget):
         messages = self.messages()
         if messages:
             self.message_offset -= elapsed * 140
-            font = QFont('Microsoft YaHei')
-            font.setPixelSize(26)
+            font = text_font(26)
             width = QFontMetricsF(font).horizontalAdvance(messages[self.message_index % len(messages)])
             if self.message_offset < -width:
                 self.message_index = (self.message_index + 1) % len(messages)
@@ -88,10 +89,9 @@ class Display(QWidget):
         p.scale(scale, scale)
         yellow, dark = QColor('#ffd400'), QColor('#303030')
 
-        def label(rect, text, size, color=dark, bold=False, align=Qt.AlignmentFlag.AlignCenter):
-            font = QFont('Microsoft YaHei', size)
-            font.setPixelSize(size)
-            font.setBold(bold)
+        def label(rect, text, size, color=dark, bold=False, align=Qt.AlignmentFlag.AlignCenter,
+                  emphasis=False):
+            font = text_font(size, bold=bold, emphasis=emphasis)
             p.setFont(font)
             p.setPen(color)
             # Fit long team names and titles without overlapping adjacent content.
@@ -106,13 +106,15 @@ class Display(QWidget):
         label(QRectF(80, 55, 900, 45), d['title'], 30, align=Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         p.fillRect(QRectF(80, 112, 290, 57), yellow)
         label(QRectF(84, 105, 150, 65), d['match'], 52, bold=True)
-        label(QRectF(240, 114, 120, 51), d['english'], 21, bold=True)
+        english_letters = [char for char in d['english'] if char.isascii() and char.isalpha()]
+        uppercase = bool(english_letters) and all(char.isupper() for char in english_letters)
+        label(QRectF(240, 114, 120, 51), d['english'], 21, bold=True, emphasis=uppercase)
         p.fillRect(QRectF(1500, 48, 56, 56), yellow)
         p.fillRect(QRectF(1556, 104, 56, 56), yellow)
         p.setPen(Qt.PenStyle.NoPen)
         p.setBrush(yellow)
         p.drawEllipse(QRectF(1532, 80, 48, 48))
-        label(QRectF(1620, 55, 255, 100), 'CRTC', 86, bold=True)
+        label(QRectF(1620, 55, 255, 100), 'CRTC', 86, emphasis=True)
         for x, key in [(310, 'left_team'), (1270, 'right_team')]:
             label(QRectF(x, 465, 340, 115), d[key], d['team_font_size'], bold=True)
         seconds = self.controller.timer.seconds()
@@ -129,8 +131,7 @@ class Display(QWidget):
         if messages:
             p.save()
             p.setClipRect(ticker)
-            font = QFont('Microsoft YaHei')
-            font.setPixelSize(26)
+            font = text_font(26)
             p.setFont(font)
             p.setPen(dark)
             metrics = QFontMetricsF(font)
