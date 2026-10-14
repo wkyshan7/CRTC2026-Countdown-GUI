@@ -1,7 +1,7 @@
 """大屏绘制、滚动消息、快捷键和比分点击。"""
 import time
 
-from PySide6.QtCore import Qt, QRectF, QTimer, QPointF
+from PySide6.QtCore import Qt, QRect, QRectF, QTimer, QPointF
 from PySide6.QtGui import QColor, QPainter, QPixmap, QShortcut, QKeySequence, QFontMetricsF
 from PySide6.QtWidgets import QWidget
 
@@ -26,13 +26,39 @@ class Display(QWidget):
         self.scroll_timer.start(16)
         self.setWindowTitle('CRTC 比赛大屏 · F11 全屏 · F2 操作面板')
         self.resize(1280, 720)
-        for key, callback in [('F11', self.toggle_fullscreen), ('Escape', self.showNormal),
+        self.windowed_geometry = QRect(self.geometry())
+        for key, callback in [('F11', self.toggle_fullscreen), ('Escape', self.exit_fullscreen),
                               ('F2', controller.show_panel)]:
             shortcut = QShortcut(QKeySequence(key), self)
             shortcut.activated.connect(callback)
 
     def toggle_fullscreen(self):
-        self.showNormal() if self.isFullScreen() else self.showFullScreen()
+        self.exit_fullscreen() if self.isFullScreen() else self.enter_fullscreen()
+
+    def enter_fullscreen(self, screen=None):
+        """记录普通窗口大小，再进入指定屏幕，避免保存为整屏尺寸。"""
+        if not self.isFullScreen():
+            self.windowed_geometry = QRect(self.normalGeometry() if self.isMaximized() else self.geometry())
+        if screen is not None:
+            if self.windowHandle() is None:
+                self.show()
+            self.windowHandle().setScreen(screen)
+            # 定位到目标屏幕，但不把普通窗口放大到整屏。
+            self.move(screen.availableGeometry().topLeft())
+        self.showFullScreen()
+
+    def exit_fullscreen(self):
+        if not self.isFullScreen():
+            return
+        available = self.screen().availableGeometry()
+        saved = self.windowed_geometry
+        width = min(saved.width(), 1280, int(available.width() * 0.8))
+        height = min(saved.height(), 720, int(available.height() * 0.8))
+        # 为标题栏和边框留空间，保证退出后可以直接拖动。
+        x = max(available.left() + 16, min(saved.x(), available.right() - width - 16))
+        y = max(available.top() + 40, min(saved.y(), available.bottom() - height - 40))
+        self.showNormal()
+        self.setGeometry(QRect(x, y, width, height))
 
     def reset_scroll(self):
         self.message_index = 0

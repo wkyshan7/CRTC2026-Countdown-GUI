@@ -144,10 +144,7 @@ class Control(QMainWindow):
 
     def show_on_screen(self):
         screen = QApplication.screens()[self.screens.currentIndex()]
-        self.display.showNormal()
-        self.display.windowHandle().setScreen(screen)
-        self.display.setGeometry(screen.geometry())
-        self.display.showFullScreen()
+        self.display.enter_fullscreen(screen)
 
     def closeEvent(self, event):
         QApplication.instance().quit()

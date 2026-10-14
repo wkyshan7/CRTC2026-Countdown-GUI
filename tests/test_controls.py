@@ -109,6 +109,26 @@ class ControlTests(unittest.TestCase):
         c.start_shortcut.activated.emit()
         self.assertTrue(c.timer.running)
 
+    def test_fullscreen_exit_restores_manageable_window(self):
+        d = self.control.display
+        d.resize(800, 450)
+        d.show()
+        self.app.processEvents()
+        self.control.show_on_screen()
+        self.app.processEvents()
+        self.assertTrue(d.isFullScreen())
+        d.toggle_fullscreen()
+        self.app.processEvents()
+        self.assertFalse(d.isFullScreen())
+        self.assertLessEqual(d.width(), 800)
+        self.assertLessEqual(d.height(), 450)
+        self.assertTrue(d.screen().availableGeometry().contains(d.geometry()))
+        d.enter_fullscreen()
+        self.app.processEvents()
+        d.exit_fullscreen()
+        self.app.processEvents()
+        self.assertFalse(d.isFullScreen())
+
     def test_dark_palette_readability_and_existing_timer_controls(self):
         dark = QPalette()
         dark.setColor(QPalette.ColorRole.WindowText, QColor('white'))
