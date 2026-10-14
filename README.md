@@ -33,7 +33,7 @@ python main.py
 
 右上角 CRTC 标记使用 `assets/images/CRTCLogo.png`，保持原始比例缩放并保留透明背景。
 
-左上角装饰使用 `assets/images/header-emblem-yellow.png`，由提供的图案去背景并改为黄色；右上角 Logo 显示尺寸已缩小至原来的 75%。
+左上角装饰使用 `assets/images/header-emblem-yellow.png`，由提供的图案去背景并改为黄色；左上角标题区整体缩小至原来的 75%，右上角 Logo 使用原始显示尺寸（设计区域 380×120），保持图片比例。
 
 ## 验证
 

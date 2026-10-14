@@ -139,7 +139,7 @@ class Display(QWidget):
 
         d = self.controller.data
         draw_match_header(p, d, self.header_decoration)
-        logo_area = QRectF(1590, 48, 285, 90)
+        logo_area = QRectF(1495, 48, 380, 120)
         ratio = min(logo_area.width() / self.logo.width(), logo_area.height() / self.logo.height())
         logo_rect = QRectF(0, 0, self.logo.width() * ratio, self.logo.height() * ratio)
         logo_rect.moveCenter(logo_area.center())

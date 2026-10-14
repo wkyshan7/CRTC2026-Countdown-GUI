@@ -21,6 +21,10 @@ def fit_font(text, size, max_width, bold=False, emphasis=False, max_height=None)
 
 def draw_match_header(painter, data, decoration):
     painter.save()
+    # 以标题区左上角为锚点整体缩小，保持图标、文字、底条的相对位置。
+    painter.translate(42, 48)
+    painter.scale(0.75, 0.75)
+    painter.translate(-42, -48)
     yellow = QColor('#ffd400')
     dark = QColor('#292929')
     # 透明黄色环形图案置于文字背后，中心和图块间隙保持透明。
