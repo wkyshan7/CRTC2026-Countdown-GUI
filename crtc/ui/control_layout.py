@@ -1,6 +1,6 @@
 """构建控制窗口的双栏布局与输入控件；业务回调由窗口提供。"""
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
-    QLineEdit, QSpinBox, QLabel, QGroupBox, QComboBox, QPlainTextEdit, QApplication)
+    QLineEdit, QSpinBox, QLabel, QGroupBox, QComboBox, QPlainTextEdit, QApplication, QCheckBox)
 
 
 def build_control_layout(window):
@@ -42,7 +42,7 @@ def build_control_layout(window):
                   technical='技术暂停时长（秒）', competition='比赛时长（秒）',
                   english='左上角英文（可换行）', team_font_size='队名字号（像素）', messages='滚动信息（每行一条）')
     for key, value in window.data.items():
-        if key in ('left_score', 'right_score', 'teams'):
+        if key in ('left_score', 'right_score', 'teams', 'technical_auto_start'):
             continue
         if key in ('left_team', 'right_team'):
             field = QComboBox()
@@ -73,6 +73,10 @@ def build_control_layout(window):
     settings.addStretch()
     timer_group = QGroupBox('计时控制')
     timer_layout = QVBoxLayout(timer_group)
+    auto_start = QCheckBox('技术暂停后立即开始')
+    auto_start.setChecked(window.data['technical_auto_start'])
+    window.fields['technical_auto_start'] = auto_start
+    timer_layout.addWidget(auto_start)
     row = QHBoxLayout()
     window.button(row, '准备阶段 / 重置', lambda: window.set_phase('preparation'))
     window.button(row, '正式比赛 / 重置', lambda: window.set_phase('competition'))
@@ -81,7 +85,7 @@ def build_control_layout(window):
     window.start_button = window.button(row, '开始', window.toggle_timer)
     window.tech_button = window.button(row, '技术暂停（覆盖计时）', window.technical_pause)
     timer_layout.addLayout(row)
-    pause_tip = QLabel('技术暂停仅适用于准备阶段，覆盖倒计时后立即开始。')
+    pause_tip = QLabel('技术暂停仅适用于准备阶段。选项修改后请保存配置。')
     pause_tip.setWordWrap(True)
     timer_layout.addWidget(pause_tip)
     operations.addWidget(timer_group)

@@ -4,7 +4,7 @@ from pathlib import Path
 from PySide6.QtCore import QTimer, Qt
 from PySide6.QtGui import QShortcut, QKeySequence
 from PySide6.QtWidgets import (QApplication, QMainWindow, QLineEdit, QPushButton,
-    QComboBox, QPlainTextEdit, QFileDialog, QMessageBox)
+    QComboBox, QPlainTextEdit, QFileDialog, QMessageBox, QCheckBox)
 
 from crtc.config import ConfigStore, bounded_score
 from crtc.countdown import Countdown
@@ -46,7 +46,9 @@ class Control(QMainWindow):
     def apply_config(self):
         data = self.data.copy()
         for key, field in self.fields.items():
-            if isinstance(field, QComboBox):
+            if isinstance(field, QCheckBox):
+                data[key] = field.isChecked()
+            elif isinstance(field, QComboBox):
                 data[key] = field.currentText().strip()
             elif isinstance(field, QPlainTextEdit):
                 data[key] = field.toPlainText().strip()[:10000 if key == 'messages' else 80]
@@ -117,7 +119,8 @@ class Control(QMainWindow):
             return
         self.phase_name = '技术暂停'
         self.timer.reset(self.data['technical'])
-        self.timer.start()
+        if self.data['technical_auto_start']:
+            self.timer.start()
         self.tick()
 
     def toggle_timer(self):

@@ -94,6 +94,21 @@ class ControlTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             parse_teams(('队' * 81).encode())
 
+    def test_technical_auto_start_option_is_saved_and_respected(self):
+        c = self.control
+        c.fields['technical_auto_start'].setChecked(False)
+        c.apply_config()
+        self.assertFalse(c.config_store.load()['technical_auto_start'])
+        c.toggle_timer()
+        c.technical_pause()
+        self.assertEqual(c.timer.seconds(), 120)
+        self.assertFalse(c.timer.running)
+        c.fields['technical_auto_start'].setChecked(True)
+        c.apply_config()
+        self.assertTrue(c.config_store.load()['technical_auto_start'])
+        c.technical_pause()
+        self.assertTrue(c.timer.running)
+
     def test_space_binding_starts_and_resumes_without_toggling_pause(self):
         c = self.control
         self.assertEqual(c.start_shortcut.context(), Qt.ShortcutContext.ApplicationShortcut)

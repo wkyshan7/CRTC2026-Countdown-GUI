@@ -8,7 +8,8 @@ from crtc.runtime import CONFIG_PATH
 DEFAULTS = dict(title='重庆大学机器人训练大赛', match='决赛',
                 left_team='你说得队', right_team='你说得队', left_score=0,
                 right_score=0, preparation=120, technical=120, competition=240,
-                english='FINAL\nMATCH', team_font_size=44, messages='', teams=[])
+                english='FINAL\nMATCH', team_font_size=44, messages='', teams=[],
+                technical_auto_start=True)
 
 def bounded_score(value):
     return value if 0 <= value <= 3 else 0
@@ -20,7 +21,10 @@ def load_config(path=CONFIG_PATH):
         saved = json.loads(Path(path).read_text(encoding='utf-8'))
         for key, default in DEFAULTS.items():
             value = saved.get(key, default)
-            if isinstance(default, str) and isinstance(value, str):
+            if isinstance(default, bool):
+                if type(value) is bool:
+                    data[key] = value
+            elif isinstance(default, str) and isinstance(value, str):
                 data[key] = value[:10000 if key == 'messages' else 80]
             elif key == 'teams' and isinstance(value, list):
                 data[key] = list(dict.fromkeys(v.strip()[:80] for v in value if isinstance(v, str) and v.strip()))
