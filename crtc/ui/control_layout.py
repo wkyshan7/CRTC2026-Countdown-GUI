@@ -43,7 +43,7 @@ def build_control_layout(window):
                   english='左上角英文（可换行）', team_font_size='队名字号（像素）', messages='滚动信息（每行一条）',
                   score_limit='比分上限')
     for key, value in window.data.items():
-        if key in ('left_score', 'right_score', 'teams', 'technical_auto_start'):
+        if key in ('left_score', 'right_score', 'teams', 'technical_auto_start', 'competition_precountdown'):
             continue
         if key in ('left_team', 'right_team'):
             field = QComboBox()
@@ -78,6 +78,10 @@ def build_control_layout(window):
     auto_start.setChecked(window.data['technical_auto_start'])
     window.fields['technical_auto_start'] = auto_start
     timer_layout.addWidget(auto_start)
+    precountdown = QCheckBox('正式比赛前增加 5 秒倒计时')
+    precountdown.setChecked(window.data['competition_precountdown'])
+    window.fields['competition_precountdown'] = precountdown
+    timer_layout.addWidget(precountdown)
     row = QHBoxLayout()
     window.button(row, '准备阶段 / 重置', lambda: window.set_phase('preparation'))
     window.button(row, '正式比赛 / 重置', lambda: window.set_phase('competition'))

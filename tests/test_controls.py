@@ -9,7 +9,7 @@ from crtc.runtime import PROJECT_ROOT
 from crtc.teams import parse_teams
 from PySide6.QtWidgets import QApplication, QFileDialog
 from PySide6.QtCore import Qt, QPoint
-from PySide6.QtGui import QColor, QPalette
+from PySide6.QtGui import QColor, QPalette, QCloseEvent
 from PySide6.QtTest import QTest
 
 
@@ -94,6 +94,20 @@ class ControlTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             parse_teams(('队' * 81).encode())
 
+    def test_close_waits_for_audio_shutdown_then_allows_application_exit(self):
+        c = self.control
+        backend = Mock()
+        c.music.backend = backend
+        first = QCloseEvent()
+        c.closeEvent(first)
+        self.assertFalse(first.isAccepted())
+        backend.shutdown.assert_called_once()
+        self.assertFalse(c.ticker.isActive())
+        second = QCloseEvent()
+        c.closeEvent(second)
+        self.assertTrue(second.isAccepted())
+        backend.shutdown.assert_called_once()
+
     def test_configurable_score_limit_updates_inputs_clicks_and_saved_scores(self):
         c = self.control
         c.fields['score_limit'].setValue(5)
@@ -122,17 +136,82 @@ class ControlTests(unittest.TestCase):
         backend.play.assert_called_once()
         c.technical_pause()
         backend.set_phase.assert_called_with('technical')
-        self.assertEqual(backend.play.call_count, 2)
+        self.assertEqual(backend.play.call_count, 1)
+        backend.stop.assert_not_called()
         c.toggle_timer()
         backend.pause.assert_called_once()
         c.set_phase('competition')
         backend.set_phase.assert_called_with('competition')
         c.start_timer()
-        self.assertEqual(backend.play.call_count, 3)
+        self.assertEqual(backend.play.call_count, 2)
         backend.stop.reset_mock()
         c.timer.clock = lambda: c.timer.deadline + 1
         c.tick()
         backend.stop.assert_called_once()
+
+    def test_five_second_precountdown_runs_once_then_starts_full_match(self):
+        c = self.control
+        now = [100.0]
+        c.timer.clock = lambda: now[0]
+        c.fields['competition_precountdown'].setChecked(True)
+        c.apply_config()
+        self.assertTrue(c.config_store.load()['competition_precountdown'])
+        c.set_phase('competition')
+        self.assertEqual(c.timer.seconds(), 240)
+        self.assertFalse(c.timer.running)
+        c.start_timer()
+        self.assertEqual(c.timer.seconds(), 5)
+        self.assertTrue(c.in_precountdown)
+        now[0] += 2
+        c.toggle_timer()
+        self.assertEqual(c.timer.seconds(), 3)
+        now[0] += 10
+        c.start_timer()
+        self.assertEqual(c.timer.seconds(), 3)
+        now[0] += 3
+        c.tick()
+        self.assertFalse(c.in_precountdown)
+        self.assertEqual(c.phase_name, '正式比赛')
+        self.assertTrue(c.timer.running)
+        self.assertEqual(c.timer.seconds(), 240)
+        c.start_timer()
+        self.assertEqual(c.timer.seconds(), 240)
+        c.toggle_timer()
+        c.start_timer()
+        self.assertFalse(c.in_precountdown)
+
+    def test_reset_cancels_precountdown_and_disabled_option_starts_directly(self):
+        c = self.control
+        c.fields['competition_precountdown'].setChecked(True)
+        c.apply_config()
+        c.set_phase('competition')
+        c.start_timer()
+        c.toggle_timer()
+        c.set_phase('preparation')
+        c.start_timer()
+        self.assertFalse(c.in_precountdown)
+        self.assertEqual(c.timer.seconds(), 120)
+        c.toggle_timer()
+        c.fields['competition_precountdown'].setChecked(False)
+        c.apply_config()
+        c.set_phase('competition')
+        c.start_timer()
+        self.assertFalse(c.in_precountdown)
+        self.assertEqual(c.timer.seconds(), 240)
+
+    def test_technical_music_keeps_playing_when_auto_timer_is_disabled(self):
+        c = self.control
+        backend = Mock()
+        c.music.backend = backend
+        c.data['technical_auto_start'] = False
+        c.start_timer()
+        c.technical_pause()
+        self.assertFalse(c.timer.running)
+        self.assertEqual(c.music.state, 'playing')
+        backend.stop.assert_not_called()
+        backend.pause.assert_not_called()
+        c.start_timer()
+        self.assertEqual(backend.play.call_count, 1)
 
     def test_technical_auto_start_option_is_saved_and_respected(self):
         c = self.control

@@ -1,4 +1,4 @@
-"""阶段背景音乐扩展接口；默认静音，不依赖具体播放器或音频文件。"""
+"""阶段背景音乐接口和状态同步；具体播放由界面层实现。"""
 from typing import Literal, Protocol
 
 MusicPhase = Literal['preparation', 'technical', 'competition']
@@ -44,7 +44,9 @@ class PhaseMusic:
 
     def sync(self, phase: MusicPhase, running: bool, remaining: int):
         if phase != self.phase:
-            if self.phase is not None:
+            # 准备和技术暂停共用曲目，阶段切换不停止、不重新播放。
+            continuous = {self.phase, phase} <= {'preparation', 'technical'}
+            if self.phase is not None and not continuous:
                 self.stop()
             self.backend.set_phase(phase)
             self.phase = phase

@@ -26,6 +26,9 @@ class Control(QMainWindow):
         self.music = PhaseMusic(music_backend)
         self.phase_name = '准备阶段'
         self.timer = Countdown(self.data[self.phase])
+        self.precountdown_pending = False
+        self.in_precountdown = False
+        self.technical_music_hold = False
         self.display = Display(self)
         self.setWindowTitle('CRTC 配置与比赛控制')
         self.resize(940, 640)
@@ -120,6 +123,9 @@ class Control(QMainWindow):
             if answer != QMessageBox.StandardButton.Yes:
                 return
         self.phase = phase
+        self.precountdown_pending = phase == 'competition'
+        self.in_precountdown = False
+        self.technical_music_hold = False
         self.music_phase = phase
         self.music.reset()
         self.phase_name = '准备阶段' if phase == 'preparation' else '正式比赛'
@@ -131,27 +137,50 @@ class Control(QMainWindow):
             return
         self.phase_name = '技术暂停'
         self.music_phase = 'technical'
-        self.music.reset()
+        # 即使取消技术暂停自动计时，已经播放的准备音乐也保持连续。
+        self.technical_music_hold = self.music.state == 'playing'
         self.timer.reset(self.data['technical'])
         if self.data['technical_auto_start']:
             self.timer.start()
         self.tick()
 
     def toggle_timer(self):
-        self.timer.pause() if self.timer.running else self.timer.start()
+        self.technical_music_hold = False
+        if self.timer.running:
+            self.timer.pause()
+        else:
+            self._start_current_timer()
         self.tick()
 
     def start_timer(self):
         """空格开始或继续当前阶段；重复按下不会暂停正在运行的计时。"""
-        self.timer.start()
+        self.technical_music_hold = False
+        self._start_current_timer()
         self.tick()
+
+    def _start_current_timer(self):
+        if self.precountdown_pending:
+            self.precountdown_pending = False
+            if self.data['competition_precountdown']:
+                self.in_precountdown = True
+                self.phase_name = '比赛开始倒计时'
+                self.timer.reset(5)
+        self.timer.start()
 
     def tick(self):
         if self.timer.finish_if_due():
-            QApplication.beep()
+            if self.in_precountdown:
+                self.in_precountdown = False
+                self.phase_name = '正式比赛'
+                self.timer.reset(self.data['competition'])
+                self.timer.start()
+            else:
+                QApplication.beep()
         seconds = self.timer.seconds()
+        if seconds == 0:
+            self.technical_music_hold = False
         self.score_tip.setText(f"大屏比分：左键 +1，右键 -1；超出 0～{self.data['score_limit']} 归零。")
-        self.music.sync(self.music_phase, self.timer.running, seconds)
+        self.music.sync(self.music_phase, self.timer.running or self.technical_music_hold, seconds)
         self.status.setText(f'{self.phase_name}  {seconds // 60:02d}:{seconds % 60:02d}')
         self.start_button.setText('暂停' if self.timer.running else '开始 / 继续')
         self.tech_button.setEnabled(self.phase == 'preparation')
@@ -167,6 +196,18 @@ class Control(QMainWindow):
         self.display.enter_fullscreen(screen)
 
     def closeEvent(self, event):
+        shutdown = getattr(self.music.backend, 'shutdown', None)
+        if callable(shutdown):
+            if getattr(self, '_closing', False):
+                event.accept()
+                return
+            event.ignore()
+            self._closing = True
+            self.ticker.stop()
+            self.display.scroll_timer.stop()
+            self.setEnabled(False)
+            shutdown(QApplication.instance().quit)
+            return
         self.music.stop()
         QApplication.instance().quit()
         event.accept()

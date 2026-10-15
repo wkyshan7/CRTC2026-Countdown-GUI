@@ -12,7 +12,7 @@ DEFAULTS = dict(title='重庆大学机器人训练大赛', match='决赛',
                 left_team='你说得队', right_team='你说得队', left_score=0,
                 right_score=0, preparation=120, technical=120, competition=240,
                 english='FINAL\nMATCH', team_font_size=44, messages='', teams=[],
-                technical_auto_start=True, score_limit=3)
+                technical_auto_start=True, score_limit=3, competition_precountdown=False)
 
 def bounded_score(value, limit=3):
     return value if 0 <= value <= limit else 0

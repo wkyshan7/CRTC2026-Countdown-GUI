@@ -21,12 +21,12 @@ class MusicTests(unittest.TestCase):
         self.assertEqual(self.backend.mock_calls, [call.set_phase('preparation'), call.play(),
                          call.pause(), call.play(), call.stop()])
 
-    def test_technical_and_competition_have_separate_tracks(self):
+    def test_technical_preserves_preparation_playback_and_competition_stops_it(self):
         self.music.sync('preparation', True, 120)
         self.music.sync('technical', True, 120)
         self.music.sync('competition', False, 240)
         self.assertEqual(self.backend.mock_calls, [call.set_phase('preparation'), call.play(),
-            call.stop(), call.set_phase('technical'), call.play(),
+            call.set_phase('technical'),
             call.stop(), call.set_phase('competition')])
 
     def test_repeated_timeout_restarts_track(self):
