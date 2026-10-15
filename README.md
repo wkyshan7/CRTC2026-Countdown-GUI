@@ -92,6 +92,8 @@ CRTCCompetition/
 
 已接入 `assets/audio/preparation.mp3`（用户提供的“苏了个一休 - RoboMaster_三分钟准备BGM”）。准备阶段和技术暂停共用同一音源并循环播放，从准备切到技术暂停时不重载、不重新起播；即使技术暂停等待手动开始，已经在播放的准备音乐也保持连续。正式比赛（包括赛前 5 秒倒数）不播放该曲。
 
+“计时控制”中的“启用背景音乐”默认勾选，修改后点击“保存并应用配置”。关闭时音乐淡出，重新开启时按当前计时状态恢复；该设置会保留到下次启动，不影响比赛倒计时或时间到提示音。
+
 默认音量 65%，淡入淡出时长 900 毫秒。开始/继续时淡入；手动暂停、时间到、切换到正式比赛时淡出，再执行暂停/停止；退出时等待淡出完成。快速暂停/继续会从当前音量自然过渡。参数集中于 `crtc/ui/audio.py` 的 `MUSIC_VOLUME` 和 `FADE_DURATION_MS`。播放失败会在控制窗口底部提示。
 
 扩展接口仍在 `crtc/music.py`：播放器实现 `set_phase(phase)`、`play()`、`pause()`、`stop()`，通过 `Control(music_backend=播放器实例)` 注入。应用入口 `crtc/app.py` 默认接入 `QtMusicBackend`，直接创建 `Control()` 则使用静音实现，便于测试。后续可在 `QtMusicBackend.set_phase` 为正式比赛接入独立音源；准备与技术暂停应继续共用源。可选的 `shutdown(callback)` 用于淡出后退出。播放器方法应快速返回，不阻塞 GUI 线程。

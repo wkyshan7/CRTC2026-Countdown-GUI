@@ -94,6 +94,30 @@ class ControlTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             parse_teams(('队' * 81).encode())
 
+    def test_music_switch_persists_and_resumes_only_when_timer_running(self):
+        c = self.control
+        backend = Mock()
+        c.music.backend = backend
+        c.start_timer()
+        c.fields['music_enabled'].setChecked(False)
+        c.apply_config()
+        self.assertFalse(c.config_store.load()['music_enabled'])
+        backend.stop.assert_called_once()
+        backend.reset_mock()
+        c.technical_pause()
+        backend.play.assert_not_called()
+        self.assertTrue(c.timer.running)
+        c.fields['music_enabled'].setChecked(True)
+        c.apply_config()
+        backend.play.assert_called_once()
+        c.toggle_timer()
+        c.fields['music_enabled'].setChecked(False)
+        c.apply_config()
+        backend.reset_mock()
+        c.fields['music_enabled'].setChecked(True)
+        c.apply_config()
+        backend.play.assert_not_called()
+
     def test_close_waits_for_audio_shutdown_then_allows_application_exit(self):
         c = self.control
         backend = Mock()

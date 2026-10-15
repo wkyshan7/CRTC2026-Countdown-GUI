@@ -43,7 +43,8 @@ def build_control_layout(window):
                   english='左上角英文（可换行）', team_font_size='队名字号（像素）', messages='滚动信息（每行一条）',
                   score_limit='比分上限')
     for key, value in window.data.items():
-        if key in ('left_score', 'right_score', 'teams', 'technical_auto_start', 'competition_precountdown'):
+        if key in ('left_score', 'right_score', 'teams', 'technical_auto_start', 'competition_precountdown',
+                   'music_enabled'):
             continue
         if key in ('left_team', 'right_team'):
             field = QComboBox()
@@ -74,6 +75,10 @@ def build_control_layout(window):
     settings.addStretch()
     timer_group = QGroupBox('计时控制')
     timer_layout = QVBoxLayout(timer_group)
+    music_enabled = QCheckBox('启用背景音乐')
+    music_enabled.setChecked(window.data['music_enabled'])
+    window.fields['music_enabled'] = music_enabled
+    timer_layout.addWidget(music_enabled)
     auto_start = QCheckBox('技术暂停后立即开始')
     auto_start.setChecked(window.data['technical_auto_start'])
     window.fields['technical_auto_start'] = auto_start

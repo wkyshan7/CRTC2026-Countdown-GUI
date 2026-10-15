@@ -36,6 +36,17 @@ class MusicTests(unittest.TestCase):
         self.assertEqual(self.backend.mock_calls, [call.set_phase('technical'), call.play(),
                          call.stop(), call.set_phase('technical'), call.play()])
 
+    def test_disabled_music_stays_silent_through_phase_and_resume(self):
+        self.music.sync('preparation', True, 120)
+        self.music.set_enabled(False)
+        self.backend.reset_mock()
+        self.music.sync('technical', True, 120)
+        self.music.sync('technical', True, 119)
+        self.backend.play.assert_not_called()
+        self.music.set_enabled(True)
+        self.music.sync('technical', True, 118)
+        self.backend.play.assert_called_once()
+
 
 if __name__ == '__main__':
     unittest.main()

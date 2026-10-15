@@ -24,6 +24,7 @@ class Control(QMainWindow):
         self.phase = 'preparation'
         self.music_phase = 'preparation'
         self.music = PhaseMusic(music_backend)
+        self.music.set_enabled(self.data['music_enabled'])
         self.phase_name = '准备阶段'
         self.timer = Countdown(self.data[self.phase])
         self.precountdown_pending = False
@@ -69,6 +70,7 @@ class Control(QMainWindow):
             return
         reset_scroll = data['messages'] != self.data['messages']
         self.data = data
+        self.music.set_enabled(self.data['music_enabled'])
         for key, field in self.score_fields.items():
             field.blockSignals(True)
             field.setRange(0, self.data['score_limit'])

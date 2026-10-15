@@ -36,6 +36,14 @@ class PhaseMusic:
         self.backend = backend if backend is not None else SilentMusicBackend()
         self.phase = None
         self.state = 'stopped'
+        self.enabled = True
+
+    def set_enabled(self, enabled: bool):
+        """切换音乐开关；重新开启后由下一次状态同步决定是否播放。"""
+        if self.enabled == enabled:
+            return
+        self.enabled = enabled
+        self.stop()
 
     def reset(self):
         """重置或覆盖计时时，让下一次同步重新选曲并从头播放。"""
@@ -50,6 +58,8 @@ class PhaseMusic:
                 self.stop()
             self.backend.set_phase(phase)
             self.phase = phase
+        if not self.enabled:
+            return
         target = 'playing' if running else ('stopped' if remaining == 0 else 'paused')
         if target == self.state:
             return
