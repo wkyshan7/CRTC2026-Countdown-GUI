@@ -17,7 +17,7 @@ python main.py
 
 - 比分位于独立的“即时比分”区域，修改立即同步到大屏并保存，无需点击保存配置。配置中的“比分上限”可调整为 1～99，默认 3；修改上限后请保存配置，输入范围和大屏点击规则同步生效。降低上限时，超出新上限的现有比分归零。
 - 在大屏上左键点击某方比分加一分，右键减一分；达到上限再加归零，0 分再减保持零。窗口缩放或全屏后仍可点击。
-- 在比赛信息与显示配置中填写队伍、赛事名称、轮次和各阶段时长，点击“保存并应用配置”。配置保存到程序目录的 config.json，下次启动恢复。
+- 在比赛信息与显示配置中填写队伍、赛事名称、轮次和各阶段时长，点击“保存并应用配置”。源码运行时保存到程序目录的 config.json；EXE 版保存到 `%LOCALAPPDATA%\CRTCCompetition\config.json`，下次启动恢复。
 - 点击“从 TXT 导入队伍”，文件每行一个队名，支持 UTF-8（含 BOM）和 GBK。空行会忽略，重复队名去重。导入后在双方队伍下拉框选择，也可以手动填写，再保存配置。导入列表会保存。
 - 左上角英文可设置并换行；队名字号可设置为 18～90 像素（按 1920×1080 设计尺寸），过长队名会自动缩小以适应区域。队名下方黄色方框已移除。
 - 左上角标题区采用透明黄色环形图案、加粗中文轮次和白色英文黄色底条。英文位置及底条根据中文轮次实际宽度动态调整；过长文字自动缩小，避免重叠。
@@ -42,6 +42,32 @@ python main.py
 ```powershell
 python -m unittest discover -s tests
 ```
+
+## 构建 Windows EXE
+
+在 Windows 上安装构建依赖后执行：
+
+```powershell
+python -m pip install -r requirements-build.txt
+python scripts/build_exe.py
+```
+
+也可双击 `build_exe.bat`。默认生成目录版，入口是 `dist/CRTCCompetition/CRTCCompetition.exe`。分发时压缩整个 `dist/CRTCCompetition/` 文件夹，接收方解压后运行 EXE，无需另装 Python。请保留 `_internal` 等随附目录。
+
+如需单文件版：
+
+```powershell
+python scripts/build_exe.py --onefile
+# 或 build_exe.bat --onefile
+```
+
+输出为 `dist/CRTCCompetition.exe`。单文件版启动时需要释放内置资源，首次启动通常较慢；建议现场使用目录版。构建规则位于 `CRTCCompetition.spec`，字体、PNG 图片、MP3 背景音乐会一并打包；个人比赛配置、本地缓存和开发工具不会进入分发包。
+
+源码版继续使用根目录 `config.json`；EXE 版使用 `%LOCALAPPDATA%\CRTCCompetition\config.json`，首次保存时自动创建目录。升级或移动分发文件夹不会覆盖该配置。迁移现有设置时，可在关闭程序后将根目录的 `config.json` 复制到这个用户目录。资源始终从程序包读取，不依赖启动时的工作目录。
+
+构建前运行完整测试，构建后应在目标 Windows 电脑检查全屏、字体、配置保存与音频输出。Windows 构建产物位于 `dist/`，中间文件位于 `build/`，均不纳入 Git。
+
+打包方式与资源路径策略参考 [PyInstaller 构建配置](https://pyinstaller.org/en/stable/spec-files.html) 和 [运行时路径说明](https://pyinstaller.org/en/stable/runtime-information.html)。
 
 ## 项目结构与维护
 

@@ -50,6 +50,14 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(data['team_font_size'], 90)
         self.assertEqual(data['technical'], 1)
 
+    def test_first_save_creates_user_configuration_directory(self):
+        store = ConfigStore(
+            Path(self.directory.name) / 'user-data' / 'CRTCCompetition' / 'config.json'
+        )
+        data = store.load()
+        store.save(data)
+        self.assertEqual(store.load(), data)
+
     def test_temporary_replace_lock_is_retried(self):
         import os
 

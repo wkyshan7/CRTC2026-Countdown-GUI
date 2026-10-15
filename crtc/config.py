@@ -83,6 +83,7 @@ class ConfigStore:
     def save(self, data):
         """先完整落盘再替换；权限受限时转为有备份的兼容写入。"""
         content = json.dumps(data, ensure_ascii=False, indent=2).encode('utf-8')
+        self.path.parent.mkdir(parents=True, exist_ok=True)
         temporary = None
         try:
             # 每次使用独立临时文件，避免多个程序实例共享同一个 .tmp。
