@@ -37,8 +37,10 @@ class ControlTests(unittest.TestCase):
         display = self.control.display
         scale = min(display.width() / 1920, display.height() / 1080)
         center = SCORE_RECTS[key].center()
-        point = QPoint(round(center.x() * scale + (display.width() - 1920 * scale) / 2),
-                       round(center.y() * scale + (display.height() - 1080 * scale) / 2))
+        point = QPoint(
+            round(center.x() * scale + (display.width() - 1920 * scale) / 2),
+            round(center.y() * scale + (display.height() - 1080 * scale) / 2),
+        )
         QTest.mouseClick(display, button, pos=point)
 
     def test_score_clicks_with_letterboxing_and_config_independence(self):
@@ -296,8 +298,16 @@ class ControlTests(unittest.TestCase):
             self.app.setPalette(dark)
             self.control.show()
             self.app.processEvents()
-            self.assertEqual(self.control.palette().color(QPalette.ColorRole.WindowText).name(), '#252525')
-            self.assertEqual(self.control.score_fields['left_score'].palette().color(QPalette.ColorRole.Base).name(), '#ffffff')
+            self.assertEqual(
+                self.control.palette().color(QPalette.ColorRole.WindowText).name(), '#252525'
+            )
+            self.assertEqual(
+                self.control.score_fields['left_score']
+                .palette()
+                .color(QPalette.ColorRole.Base)
+                .name(),
+                '#ffffff',
+            )
             c = self.control
             c.toggle_timer()
             c.technical_pause()

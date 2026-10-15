@@ -88,6 +88,19 @@ CRTCCompetition/
 
 `.deps/` 为本机可选依赖目录，`.venv/` 为可选虚拟环境，均不属于业务源码。启动方式仍是 `python main.py` 或双击 `start.bat`。
 
+## 代码排版约定
+
+Python 代码使用 Black 统一排版，配置位于 `pyproject.toml`：每行目标长度 100 字符，保留现有字符串引号风格。模块和顶层类/函数之间保留标准空行，函数内部以空行区分初始化、校验、持久化与界面同步等步骤。注释重点说明状态标记、坐标映射、音乐过渡和异常恢复的实现原因。
+
+```powershell
+python -m pip install -r requirements-dev.txt
+python -m black main.py timer.py crtc tests
+python -m black --check main.py timer.py crtc tests
+python -m unittest discover -s tests -v
+```
+
+本机也可使用项目内 `.devtools/` 中的开发工具；该目录与业务源码分离，不纳入 Git。
+
 ## 背景音乐与扩展接口
 
 已接入 `assets/audio/preparation.mp3`（用户提供的“苏了个一休 - RoboMaster_三分钟准备BGM”）。准备阶段和技术暂停共用同一音源并循环播放，从准备切到技术暂停时不重载、不重新起播；即使技术暂停等待手动开始，已经在播放的准备音乐也保持连续。正式比赛（包括赛前 5 秒倒数）不播放该曲。

@@ -1,4 +1,5 @@
 """以模拟播放器验证淡入淡出时序，避免依赖扬声器和真实等待。"""
+
 import unittest
 from unittest.mock import Mock
 
@@ -15,7 +16,9 @@ class AudioTests(unittest.TestCase):
     def setUp(self):
         self.player = Mock()
         self.player.source.return_value = QUrl()
-        self.player.setSource.side_effect = lambda url: setattr(self.player.source, 'return_value', url)
+        self.player.setSource.side_effect = lambda url: setattr(
+            self.player.source, 'return_value', url
+        )
         self.output = Mock()
         self.output.volume.return_value = 0.0
         self.music = QtMusicBackend(player=self.player, output=self.output)

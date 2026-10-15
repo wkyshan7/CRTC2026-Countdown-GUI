@@ -1,4 +1,5 @@
 """Qt 背景音乐：准备/技术暂停共用音源，循环播放并平滑调节音量。"""
+
 from PySide6.QtCore import QObject, QUrl, QVariantAnimation, QEasingCurve, Signal
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 
@@ -10,6 +11,8 @@ PREPARATION_TRACK = PROJECT_ROOT / 'assets' / 'audio' / 'preparation.mp3'
 
 
 class QtMusicBackend(QObject):
+    """持有单个播放器；动画结束后才真正执行暂停或停止。"""
+
     error = Signal(str)
 
     def __init__(self, parent=None, *, player=None, output=None):
@@ -23,6 +26,8 @@ class QtMusicBackend(QObject):
         self.phase = None
         self._pending_action = None
         self._shutdown_callback = None
+
+        # 动画在 GUI 事件循环推进，不使用 sleep 阻塞计时或界面。
         self.fade = QVariantAnimation(self)
         self.fade.setDuration(FADE_DURATION_MS)
         self.fade.setEasingCurve(QEasingCurve.Type.InOutSine)
@@ -30,6 +35,7 @@ class QtMusicBackend(QObject):
         self.fade.finished.connect(self._finish_fade)
 
     def set_phase(self, phase):
+        """共用音源时不调用 setSource，保留正在播放的位置。"""
         self.phase = phase
         if phase in ('preparation', 'technical'):
             source = QUrl.fromLocalFile(str(PREPARATION_TRACK))
@@ -58,22 +64,27 @@ class QtMusicBackend(QObject):
     def _fade_to(self, volume, action=None):
         # 从当前音量开始新过渡，快速暂停/继续时也不会跳变。
         self.fade.stop()
+
+        # 新操作替换旧的结束动作，防止继续播放后又被旧动画暂停。
         self._pending_action = action
         current = self.output.volume()
         if abs(current - volume) < 0.001:
             self.output.setVolume(volume)
             self._finish_fade()
             return
+
         self.fade.setStartValue(float(current))
         self.fade.setEndValue(float(volume))
         self.fade.start()
 
     def _finish_fade(self):
+        """先完成播放器动作，再通知等待退出的应用。"""
         action, self._pending_action = self._pending_action, None
         if action == 'pause':
             self.player.pause()
         elif action == 'stop':
             self.player.stop()
+
         if self._shutdown_callback is not None:
             callback, self._shutdown_callback = self._shutdown_callback, None
             callback()

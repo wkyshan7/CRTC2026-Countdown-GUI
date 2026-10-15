@@ -1,4 +1,5 @@
 """阶段背景音乐接口和状态同步；具体播放由界面层实现。"""
+
 from typing import Literal, Protocol
 
 MusicPhase = Literal['preparation', 'technical', 'competition']
@@ -51,6 +52,7 @@ class PhaseMusic:
         self.phase = None
 
     def sync(self, phase: MusicPhase, running: bool, remaining: int):
+        """仅在目标状态变化时发出播放指令，避免刷新循环重启音源。"""
         if phase != self.phase:
             # 准备和技术暂停共用曲目，阶段切换不停止、不重新播放。
             continuous = {self.phase, phase} <= {'preparation', 'technical'}
@@ -58,11 +60,15 @@ class PhaseMusic:
                 self.stop()
             self.backend.set_phase(phase)
             self.phase = phase
+
+        # 关闭音乐仍更新选曲阶段，重新开启时能恢复到正确音源。
         if not self.enabled:
             return
+
         target = 'playing' if running else ('stopped' if remaining == 0 else 'paused')
         if target == self.state:
             return
+
         if target == 'playing':
             self.backend.play()
         elif target == 'paused' and self.state == 'playing':

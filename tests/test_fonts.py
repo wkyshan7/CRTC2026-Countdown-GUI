@@ -1,4 +1,5 @@
 """验证项目字体加载和中英文混排时的实际字体选择。"""
+
 import unittest
 
 from crtc.ui.fonts import load_fonts, text_font
@@ -31,7 +32,9 @@ class FontTests(unittest.TestCase):
         self.assertEqual(families, {'OPPOSans', 'Outfit'})
 
     def test_emphasized_uppercase_uses_geometos(self):
-        self.assertEqual(self.families_used('CRTC FINAL MATCH', text_font(32, emphasis=True)), {'Geometos'})
+        self.assertEqual(
+            self.families_used('CRTC FINAL MATCH', text_font(32, emphasis=True)), {'Geometos'}
+        )
 
 
 if __name__ == '__main__':

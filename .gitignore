@@ -1,5 +1,6 @@
 .deps/
 .venv/
+.devtools/
 __pycache__/
 config.json
 config.json.tmp

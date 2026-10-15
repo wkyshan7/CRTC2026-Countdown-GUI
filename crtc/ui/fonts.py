@@ -1,4 +1,5 @@
 """随应用加载字体，统一处理中英文字体及强调样式。"""
+
 from functools import lru_cache
 
 from PySide6.QtGui import QFont, QFontDatabase
@@ -14,6 +15,7 @@ def load_fonts():
     """注册项目字体，不要求用户在操作系统中安装字体。"""
     if QApplication.instance() is None:
         raise RuntimeError('加载字体前必须创建 QApplication。')
+
     registered = {}
     for path in sorted(FONT_DIRECTORY.iterdir()):
         if path.suffix.lower() in ('.ttf', '.otf'):
@@ -36,6 +38,7 @@ def text_font(pixel_size=None, bold=False, emphasis=False):
 
 
 def apply_application_fonts():
+    """设置控件默认字体；正文英文优先 Outfit，中文回退至 OPPOSans。"""
     load_fonts()
     font = text_font()
     font.setPointSize(9)
