@@ -12,6 +12,7 @@ class MusicBackend(Protocol):
     def play(self) -> None: ...
     def pause(self) -> None: ...
     def stop(self) -> None: ...
+    def set_volume(self, percent: int) -> None: ...
 
 
 class SilentMusicBackend:
@@ -27,6 +28,9 @@ class SilentMusicBackend:
         pass
 
     def stop(self) -> None:
+        pass
+
+    def set_volume(self, percent: int) -> None:
         pass
 
 
@@ -45,6 +49,10 @@ class PhaseMusic:
             return
         self.enabled = enabled
         self.stop()
+
+    def set_volume(self, percent: int):
+        """音量仅影响播放器增益，不改变阶段或播放位置。"""
+        self.backend.set_volume(max(0, min(percent, 100)))
 
     def reset(self):
         """重置或覆盖计时时，让下一次同步重新选曲并从头播放。"""

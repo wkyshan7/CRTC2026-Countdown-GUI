@@ -80,7 +80,7 @@ CRTCCompetition/
 ├── requirements.txt        # Python 依赖
 ├── assets/font/            # Geometos、Outfit、OPPOSans 字体资源
 ├── assets/images/          # CRTC Logo 图片资源
-├── assets/audio/           # 准备与技术暂停共用的背景音乐
+├── assets/audio/           # 准备/技术暂停音乐、正式比赛音乐
 ├── config.json             # 用户配置（运行时保存，不纳入版本控制）
 ├── crtc/
 │   ├── app.py              # 创建应用和主窗口
@@ -129,10 +129,12 @@ python -m unittest discover -s tests -v
 
 ## 背景音乐与扩展接口
 
-已接入 `assets/audio/preparation.mp3`（用户提供的“苏了个一休 - RoboMaster_三分钟准备BGM”）。准备阶段和技术暂停共用同一音源并循环播放，从准备切到技术暂停时不重载、不重新起播；即使技术暂停等待手动开始，已经在播放的准备音乐也保持连续。正式比赛（包括赛前 5 秒倒数）不播放该曲。
+准备/技术暂停使用 `assets/audio/preparation.mp3`（用户提供的“苏了个一休 - RoboMaster_三分钟准备BGM”）；正式比赛使用 `assets/audio/competition.mp3`（用户提供的“英雄联盟 - Summoning Glory”）。两首曲目均循环播放。从准备切到技术暂停时不重载、不重新起播；即使技术暂停等待手动开始，已经在播放的准备音乐也保持连续。
 
-“计时控制”中的“启用背景音乐”默认勾选，修改后点击“保存并应用配置”。关闭时音乐淡出，重新开启时按当前计时状态恢复；该设置会保留到下次启动，不影响比赛倒计时或时间到提示音。
+正式比赛 BGM 在正式计时开始时播放；开启赛前 5 秒倒计时时，旧曲按设定淡出，倒数结束后才启动比赛音乐。切换曲目会先淡出旧音乐，再切源淡入，避免突然跳音。
 
-默认音量 65%，淡入淡出时长 900 毫秒。开始/继续时淡入；手动暂停、时间到、切换到正式比赛时淡出，再执行暂停/停止；退出时等待淡出完成。快速暂停/继续会从当前音量自然过渡。参数集中于 `crtc/ui/audio.py` 的 `MUSIC_VOLUME` 和 `FADE_DURATION_MS`。播放失败会在控制窗口底部提示。
+“计时控制”提供“启用背景音乐”和“背景音乐音量（0～100%）”。开关及音量即时生效并自动保存，无需保存其他配置；默认开启，音量 65%。关闭时音乐淡出，重新开启时按当前计时状态恢复；设为 0% 时静音。音量调整不会改变播放位置，设置会保留到下次启动，不影响比赛倒计时或时间到提示音。
 
-扩展接口仍在 `crtc/music.py`：播放器实现 `set_phase(phase)`、`play()`、`pause()`、`stop()`，通过 `Control(music_backend=播放器实例)` 注入。应用入口 `crtc/app.py` 默认接入 `QtMusicBackend`，直接创建 `Control()` 则使用静音实现，便于测试。后续可在 `QtMusicBackend.set_phase` 为正式比赛接入独立音源；准备与技术暂停应继续共用源。可选的 `shutdown(callback)` 用于淡出后退出。播放器方法应快速返回，不阻塞 GUI 线程。
+淡入淡出时长 900 毫秒。开始/继续时淡入；手动暂停、时间到时淡出，再执行暂停/停止；退出时等待淡出完成。快速暂停/继续和音量调整会从当前音量自然过渡。默认音量与渐变时长集中于 `crtc/ui/audio.py` 的 `MUSIC_VOLUME` 和 `FADE_DURATION_MS`，实际音量由持久化配置覆盖。播放失败会在控制窗口底部提示。
+
+扩展接口位于 `crtc/music.py`：播放器实现 `set_phase(phase)`、`play()`、`pause()`、`stop()` 和 `set_volume(percent)`，通过 `Control(music_backend=播放器实例)` 注入。应用入口 `crtc/app.py` 默认接入 `QtMusicBackend`，直接创建 `Control()` 则使用静音实现，便于测试。阶段曲目映射集中于 `crtc/ui/audio.py` 的 `PHASE_TRACKS`；准备与技术暂停共用源。可选的 `shutdown(callback)` 用于淡出后退出。播放器方法应快速返回，不阻塞 GUI 线程。EXE 构建会自动包含两首 MP3。

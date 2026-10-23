@@ -42,6 +42,7 @@ class Control(QMainWindow):
         self.music_phase = 'preparation'
         self.music = PhaseMusic(music_backend)
         self.music.set_enabled(self.data['music_enabled'])
+        self.music.set_volume(self.data['music_volume'])
         self.phase_name = '准备阶段'
         self.timer = Countdown(self.data[self.phase])
 
@@ -99,6 +100,7 @@ class Control(QMainWindow):
         reset_scroll = data['messages'] != self.data['messages']
         self.data = data
         self.music.set_enabled(self.data['music_enabled'])
+        self.music.set_volume(self.data['music_volume'])
 
         # 程序同步数值时屏蔽信号，避免递归触发比分保存。
         for key, field in self.score_fields.items():
@@ -119,6 +121,31 @@ class Control(QMainWindow):
             QMessageBox.warning(self, '保存失败', str(exc))
             return False
         return True
+
+    def set_music_enabled(self, enabled):
+        """开关即时生效并单独保存，不应用其他尚未保存的表单内容。"""
+        self._save_music_option('music_enabled', enabled)
+
+    def set_music_volume(self, percent):
+        """音量即时保存，播放器负责平滑过渡到新的目标音量。"""
+        self._save_music_option('music_volume', percent)
+
+    def _save_music_option(self, key, value):
+        data = self.data.copy()
+        data[key] = value
+        if not self.save_data(data):
+            field = self.fields[key]
+            field.blockSignals(True)
+            if key == 'music_enabled':
+                field.setChecked(self.data[key])
+            else:
+                field.setValue(self.data[key])
+            field.blockSignals(False)
+            return
+        self.data = data
+        self.music.set_enabled(self.data['music_enabled'])
+        self.music.set_volume(self.data['music_volume'])
+        self.tick()
 
     def set_score(self, key, value):
         """即时更新并持久化比分，不读取尚未应用的比赛信息草稿。"""
@@ -233,7 +260,10 @@ class Control(QMainWindow):
         self.score_tip.setText(
             f"大屏比分：左键 +1，右键 -1；超出 0～{self.data['score_limit']} 归零。"
         )
-        self.music.sync(self.music_phase, self.timer.running or self.technical_music_hold, seconds)
+        music_running = (
+            self.timer.running and not self.in_precountdown
+        ) or self.technical_music_hold
+        self.music.sync(self.music_phase, music_running, seconds)
         self.status.setText(f'{self.phase_name}  {seconds // 60:02d}:{seconds % 60:02d}')
         self.start_button.setText('暂停' if self.timer.running else '开始 / 继续')
         self.tech_button.setEnabled(self.phase == 'preparation')

@@ -58,6 +58,12 @@ class ConfigTests(unittest.TestCase):
         store.save(data)
         self.assertEqual(store.load(), data)
 
+    def test_volume_range_allows_mute_and_preserves_old_default(self):
+        self.assertEqual(self.store.load()['music_volume'], 65)
+        for saved, expected in [(-1, 0), (0, 0), (30, 30), (101, 100)]:
+            self.store.path.write_text(json.dumps({'music_volume': saved}), encoding='utf-8')
+            self.assertEqual(self.store.load()['music_volume'], expected)
+
     def test_temporary_replace_lock_is_retried(self):
         import os
 

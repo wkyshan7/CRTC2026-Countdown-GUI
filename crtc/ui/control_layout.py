@@ -85,6 +85,7 @@ def build_control_layout(window):
             'technical_auto_start',
             'competition_precountdown',
             'music_enabled',
+            'music_volume',
         ):
             continue
 
@@ -125,10 +126,23 @@ def build_control_layout(window):
     # 右侧计时开关复用 fields，保存时统一读取。
     timer_group = QGroupBox('计时控制')
     timer_layout = QVBoxLayout(timer_group)
-    music_enabled = QCheckBox('启用背景音乐')
+    music_enabled = QCheckBox('启用背景音乐（即时生效）')
     music_enabled.setChecked(window.data['music_enabled'])
     window.fields['music_enabled'] = music_enabled
+    music_enabled.toggled.connect(window.set_music_enabled)
     timer_layout.addWidget(music_enabled)
+
+    volume_row = QHBoxLayout()
+    volume_row.addWidget(QLabel('背景音乐音量'))
+    music_volume = QSpinBox()
+    music_volume.setRange(0, 100)
+    music_volume.setSuffix('%')
+    music_volume.setValue(window.data['music_volume'])
+    music_volume.setKeyboardTracking(False)
+    window.fields['music_volume'] = music_volume
+    music_volume.valueChanged.connect(window.set_music_volume)
+    volume_row.addWidget(music_volume)
+    timer_layout.addLayout(volume_row)
 
     auto_start = QCheckBox('点击技术暂停后立即启动倒计时')
     auto_start.setChecked(window.data['technical_auto_start'])
@@ -150,7 +164,7 @@ def build_control_layout(window):
     window.tech_button = window.button(row, '技术暂停（覆盖计时）', window.technical_pause)
     timer_layout.addLayout(row)
 
-    pause_tip = QLabel('技术暂停仅适用于准备阶段。选项修改后请保存配置。')
+    pause_tip = QLabel('技术暂停仅适用于准备阶段。暂停与赛前倒数选项修改后请保存配置。')
     pause_tip.setWordWrap(True)
     timer_layout.addWidget(pause_tip)
     operations.addWidget(timer_group)

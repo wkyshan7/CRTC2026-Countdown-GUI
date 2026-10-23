@@ -27,6 +27,7 @@ DEFAULTS = dict(
     score_limit=3,
     competition_precountdown=False,
     music_enabled=True,
+    music_volume=65,
 )
 
 
@@ -58,6 +59,8 @@ def load_config(path=CONFIG_PATH):
                     data[key] = value
                 elif key == 'score_limit':
                     data[key] = max(1, min(value, 99))
+                elif key == 'music_volume':
+                    data[key] = max(0, min(value, 100))
                 elif key == 'team_font_size':
                     data[key] = max(18, min(value, 90))
                 else:

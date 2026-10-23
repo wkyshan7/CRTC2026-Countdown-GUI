@@ -1,4 +1,4 @@
-"""Qt 背景音乐：准备/技术暂停共用音源，循环播放并平滑调节音量。"""
+"""Qt 背景音乐：按阶段选曲、循环播放，并平滑切曲与调节音量。"""
 
 from PySide6.QtCore import QObject, QUrl, QVariantAnimation, QEasingCurve, Signal
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
@@ -8,6 +8,12 @@ from crtc.runtime import PROJECT_ROOT
 FADE_DURATION_MS = 900
 MUSIC_VOLUME = 0.65
 PREPARATION_TRACK = PROJECT_ROOT / 'assets' / 'audio' / 'preparation.mp3'
+COMPETITION_TRACK = PROJECT_ROOT / 'assets' / 'audio' / 'competition.mp3'
+PHASE_TRACKS = {
+    'preparation': PREPARATION_TRACK,
+    'technical': PREPARATION_TRACK,
+    'competition': COMPETITION_TRACK,
+}
 
 
 class QtMusicBackend(QObject):
@@ -26,6 +32,9 @@ class QtMusicBackend(QObject):
         self.phase = None
         self._pending_action = None
         self._shutdown_callback = None
+        self._next_source = None
+        self._want_playing = False
+        self.volume = MUSIC_VOLUME
 
         # 动画在 GUI 事件循环推进，不使用 sleep 阻塞计时或界面。
         self.fade = QVariantAnimation(self)
@@ -35,26 +44,44 @@ class QtMusicBackend(QObject):
         self.fade.finished.connect(self._finish_fade)
 
     def set_phase(self, phase):
-        """共用音源时不调用 setSource，保留正在播放的位置。"""
+        """同源保持播放位置，换曲先淡出，静音后才替换音源。"""
         self.phase = phase
-        if phase in ('preparation', 'technical'):
-            source = QUrl.fromLocalFile(str(PREPARATION_TRACK))
-            if self.player.source() != source:
-                self.player.setSource(source)
-        else:
+        track = PHASE_TRACKS.get(phase)
+        if track is None:
+            self._next_source = None
             self.stop()
+            return
+        source = QUrl.fromLocalFile(str(track))
+        if self.player.source() == source:
+            self._next_source = None
+            return
+        self._next_source = source
+        self._want_playing = False
+        self._fade_to(0.0, 'switch')
 
     def play(self):
-        if self.phase not in ('preparation', 'technical'):
+        if self.phase not in PHASE_TRACKS:
+            return
+        self._want_playing = True
+        if self._next_source is not None:
+            self._fade_to(0.0, 'switch')
             return
         self.player.play()
-        self._fade_to(MUSIC_VOLUME)
+        self._fade_to(self.volume)
 
     def pause(self):
+        self._want_playing = False
         self._fade_to(0.0, 'pause')
 
     def stop(self):
+        self._want_playing = False
         self._fade_to(0.0, 'stop')
+
+    def set_volume(self, percent):
+        """保存目标增益；切曲、暂停或停止的淡出不被音量调整打断。"""
+        self.volume = max(0, min(percent, 100)) / 100.0
+        if self._want_playing and self._pending_action not in ('switch', 'pause', 'stop'):
+            self._fade_to(self.volume)
 
     def shutdown(self, callback):
         """退出时等待淡出完成，再结束应用。"""
@@ -84,6 +111,13 @@ class QtMusicBackend(QObject):
             self.player.pause()
         elif action == 'stop':
             self.player.stop()
+
+        if self._next_source is not None:
+            source, self._next_source = self._next_source, None
+            self.player.setSource(source)
+            if self._want_playing:
+                self.player.play()
+                self._fade_to(self.volume)
 
         if self._shutdown_callback is not None:
             callback, self._shutdown_callback = self._shutdown_callback, None

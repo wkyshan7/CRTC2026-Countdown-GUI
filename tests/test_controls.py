@@ -206,6 +206,31 @@ class ControlTests(unittest.TestCase):
         c.start_timer()
         self.assertFalse(c.in_precountdown)
 
+    def test_competition_music_waits_for_precountdown_and_uses_volume(self):
+        c = self.control
+        backend = Mock()
+        c.music.backend = backend
+        now = [100.0]
+        c.timer.clock = lambda: now[0]
+        c.fields['competition_precountdown'].setChecked(True)
+        c.apply_config()
+        c.fields['title'].setText('未应用的赛事名称')
+        c.fields['music_volume'].setValue(25)
+        backend.set_volume.assert_called_with(25)
+        self.assertEqual(c.config_store.load()['music_volume'], 25)
+        self.assertNotEqual(c.config_store.load()['title'], '未应用的赛事名称')
+        c.set_phase('competition')
+        backend.reset_mock()
+        c.start_timer()
+        c.fields['music_enabled'].setChecked(False)
+        c.fields['music_enabled'].setChecked(True)
+        backend.play.assert_not_called()
+        now[0] += 5
+        c.tick()
+        backend.play.assert_called_once()
+        c.tick()
+        backend.play.assert_called_once()
+
     def test_reset_cancels_precountdown_and_disabled_option_starts_directly(self):
         c = self.control
         c.fields['competition_precountdown'].setChecked(True)
