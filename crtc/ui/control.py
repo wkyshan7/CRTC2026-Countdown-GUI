@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """配置和比赛操作的协调：保存、计时、比分及屏幕选择。"""
 
 from pathlib import Path

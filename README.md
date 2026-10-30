@@ -1,5 +1,7 @@
 # CRTC 比赛倒计时
 
+许可证：**GPL-3.0-or-later**。原创程序代码和构建脚本采用 GNU GPL 第 3 版或任何后续版本；完整条款见 [LICENSE](LICENSE)，资源与第三方权利说明见 [NOTICE.md](NOTICE.md)。
+
 Python 3.10+ 与 PySide6（Qt）桌面程序，白底、黄色装饰、红蓝大比分，按 16:9 设计并随屏幕缩放。
 
 ## 运行
@@ -35,6 +37,8 @@ python main.py
 
 右上角 CRTC 标记使用 `assets/images/CRTCLogo.png`，保持原始比例缩放并保留透明背景。
 
+应用窗口、任务栏和 EXE 文件使用 `assets/images/app-icon.ico`。该图标由用户提供的 `app-icon.jpg` 转换，保留原图黄色背景和构图，包含 16～256 像素共七种尺寸。更新原图后运行 `python scripts/generate_icon.py`，再重新构建 EXE。
+
 左上角装饰使用 `assets/images/header-emblem-yellow.png`，由提供的图案去背景并改为黄色；左上角标题区整体缩小至原来的 75%，右上角 Logo 使用原始显示尺寸（设计区域 380×120），保持图片比例。
 
 ## 验证
@@ -66,6 +70,8 @@ python scripts/build_exe.py --onefile
 源码版继续使用根目录 `config.json`；EXE 版使用 `%LOCALAPPDATA%\CRTCCompetition\config.json`，首次保存时自动创建目录。升级或移动分发文件夹不会覆盖该配置。迁移现有设置时，可在关闭程序后将根目录的 `config.json` 复制到这个用户目录。资源始终从程序包读取，不依赖启动时的工作目录。
 
 构建前运行完整测试，构建后应在目标 Windows 电脑检查全屏、字体、配置保存与音频输出。Windows 构建产物位于 `dist/`，中间文件位于 `build/`，均不纳入 Git。
+
+分发包同时内置 `LICENSE` 和 `NOTICE.md`。分发二进制时请按 GPL 条款同时提供对应版本的程序源代码和构建脚本；第三方素材的许可证说明保持独立。
 
 打包方式与资源路径策略参考 [PyInstaller 构建配置](https://pyinstaller.org/en/stable/spec-files.html) 和 [运行时路径说明](https://pyinstaller.org/en/stable/runtime-information.html)。
 

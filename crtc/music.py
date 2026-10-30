@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """阶段背景音乐接口和状态同步；具体播放由界面层实现。"""
 
 from typing import Literal, Protocol

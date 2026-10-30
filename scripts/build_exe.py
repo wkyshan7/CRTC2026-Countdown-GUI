@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """在 Windows 构建可分发程序：默认目录版，--onefile 为单文件版。"""
 
 import argparse

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """项目路径与可选的本地依赖加载。"""
 
 import os

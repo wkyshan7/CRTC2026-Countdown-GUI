@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """默认值、配置兼容校验与 JSON 存储，不依赖图形界面。"""
 
 import json

@@ -1,4 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
+# SPDX-License-Identifier: GPL-3.0-or-later
 """PyInstaller 构建：字体、图片和音乐作为内置资源随程序分发。"""
 
 import os
@@ -17,7 +18,10 @@ a = Analysis(
     datas=[
         (str(root / 'assets' / 'font'), 'assets/font'),
         (str(root / 'assets' / 'images' / '*.png'), 'assets/images'),
+        (str(root / 'assets' / 'images' / '*.ico'), 'assets/images'),
         (str(root / 'assets' / 'audio' / '*.mp3'), 'assets/audio'),
+        (str(root / 'LICENSE'), '.'),
+        (str(root / 'NOTICE.md'), '.'),
     ],
     hiddenimports=[],
     hookspath=[],
@@ -37,6 +41,7 @@ exe = EXE(
     strip=False,
     upx=False,
     console=False,
+    icon=str(root / 'assets' / 'images' / 'app-icon.ico'),
 )
 if not onefile:
     coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name='CRTCCompetition')

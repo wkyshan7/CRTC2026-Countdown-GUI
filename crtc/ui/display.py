@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """大屏绘制、滚动消息、快捷键和比分点击。"""
 
 import time

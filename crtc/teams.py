@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """TXT 队伍名单解码、校验与去重。"""
 
 

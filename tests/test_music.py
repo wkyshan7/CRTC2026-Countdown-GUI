@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """阶段背景音乐事件验证，无需音频设备。"""
 
 import unittest

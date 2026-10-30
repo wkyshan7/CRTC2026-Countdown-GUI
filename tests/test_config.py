@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """配置迁移、容错和存储验证，无需创建 Qt 应用。"""
 
 import tempfile

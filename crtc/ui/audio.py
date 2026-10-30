@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Qt 背景音乐：按阶段选曲、循环播放，并平滑切曲与调节音量。"""
 
 from PySide6.QtCore import QObject, QUrl, QVariantAnimation, QEasingCurve, Signal

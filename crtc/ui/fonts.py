@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """随应用加载字体，统一处理中英文字体及强调样式。"""
 
 from functools import lru_cache

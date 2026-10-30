@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """构建控制窗口的双栏布局与输入控件；业务回调由窗口提供。"""
 
 from PySide6.QtWidgets import (

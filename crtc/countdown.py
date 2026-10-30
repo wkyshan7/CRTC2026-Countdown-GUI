@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """独立于 GUI 的单调时钟倒计时，不受系统时间调整影响。"""
 
 import math

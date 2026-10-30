@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """验证源码和 EXE 的资源/配置路径策略。"""
 
 import os

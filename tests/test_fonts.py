@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """验证项目字体加载和中英文混排时的实际字体选择。"""
 
 import unittest

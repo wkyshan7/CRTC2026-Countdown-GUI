@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """以模拟播放器验证淡入淡出时序，避免依赖扬声器和真实等待。"""
 
 import unittest

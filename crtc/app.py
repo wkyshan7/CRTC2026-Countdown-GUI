@@ -1,14 +1,17 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """应用创建与两个主窗口的启动。"""
 
 import sys
 
 from crtc.ui.control import Control
 from crtc.ui.audio import QtMusicBackend
+from crtc.ui.icons import apply_application_icon
 from PySide6.QtWidgets import QApplication
 
 
 def run():
     app = QApplication(sys.argv)
+    apply_application_icon(app)
     app.setStyle('Fusion')
     music = QtMusicBackend(app)
     control = Control(music_backend=music)

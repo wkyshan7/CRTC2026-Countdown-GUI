@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """参考赛事视觉的左上角标题区，按文字宽度动态布局。"""
 
 from PySide6.QtCore import Qt, QRectF

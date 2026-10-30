@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """控制窗口浅色主题，独立于操作系统的深色模式。"""
 
 from PySide6.QtGui import QColor, QPalette
